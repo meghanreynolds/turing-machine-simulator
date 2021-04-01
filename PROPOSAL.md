@@ -47,9 +47,7 @@ the tape on the machine represented in the Figma Rendering read "0", the complet
 11q<sub>2</sub>111;111q<sub>2</sub>11;1111q<sub>2</sub>1;11111q<sub>2</sub>0;1111q<sub>1</sub>11;111q<sub>3</sub>111;
 11q<sub>h</sub>1111;
 
-The notation that will be used in this simulation is as follows:  
-  - Rules will be written as 'read, write, move'. For example, '-, 1, N' reads as "Read blank, Write 1, Do
-  not move" and '0, 0, R' reads as "Read 0, Write 0, Move Right 1 Square".
+The notation that will be used in this simulation is as follows:
   - **q<sub>1</sub>:** the starting state  
   - **q<sub>n</sub>:** the nth state  
   - **q<sub>h</sub>:** the halting state  
@@ -57,6 +55,8 @@ The notation that will be used in this simulation is as follows:
   - **R:** move the scanner 1 square to the right  
   - **N:** do not move the scanner  
   - **'-':** blank square
+- Rules will be written as 'read, write, move'. For example, '-, 1, N' reads as "Read blank, Write 1, Do
+  not move" and '0, 0, R' reads as "Read 0, Write 0, Move Right 1 Square".
 
 The simulation will follow the following conventions and assumptions:  
 - The scanner will initially be placed at the 1st symbol of the user input
