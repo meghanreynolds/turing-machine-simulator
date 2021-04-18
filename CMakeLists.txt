@@ -38,9 +38,10 @@ get_filename_component(APP_PATH "${CMAKE_CURRENT_SOURCE_DIR}/" ABSOLUTE)
 
 include("${CINDER_PATH}/proj/cmake/modules/cinderMakeApp.cmake")
 
-list(APPEND SOURCE_FILES    src/turing_machine_simulator_app.cc)
+list(APPEND SOURCE_FILES    src/turing_machine_simulator_app.cc
+                            src/state.cc)
 
-list(APPEND TEST_FILES tests/test_simulator.cc)
+list(APPEND TEST_FILES tests/test_state.cc)
 
 ci_make_app(
   APP_NAME        turing-machine-simulator

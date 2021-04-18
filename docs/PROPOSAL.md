@@ -72,7 +72,7 @@ The simulation will follow the following conventions and assumptions:
   entering in rules for changing states(represented by arrows in the state diagram)
 - [ ] Let users name non-starting/halting states
 - [ ] Let users clear the simulation out
-- [ ] Let users clear out individual nodes of the state diagram
+- [X] Let users clear out individual nodes of the state diagram
 
 **Week 2**
 - [ ] Finish up Week 1
