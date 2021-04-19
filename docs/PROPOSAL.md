@@ -68,7 +68,7 @@ The simulation will follow the following conventions and assumptions:
 ## Timeline ##
 **Week 1**
 
-- [ ] Read in the Turing Machine from users dragging and dropping in nodes (representing states of the machine) and 
+- [X] Read in the Turing Machine from users dragging and dropping in nodes (representing states of the machine) and 
   entering in rules for changing states(represented by arrows in the state diagram)
 - [ ] Let users name non-starting/halting states
 - [ ] Let users clear the simulation out

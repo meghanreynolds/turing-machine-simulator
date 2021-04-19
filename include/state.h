@@ -51,12 +51,30 @@ class State {
      *     the given point
      */
     bool StateCenterIsWithinGivenRadius(const glm::vec2 &kLocation,
-                                        double radius) const; 
+        double radius) const; 
     
     /**
      * This method displays the state in the app
      */
     void Display() const;
+    
+    /**
+     * This method returns true if the state is empty (no other variables are
+     * initialized) and false otherwise
+     * 
+     * @return true if the state object is empty and false otherwise
+     */
+    bool IsEmpty() const;
+    
+    /**
+     * This method compares this state object with another state object to 
+     * see if the 2 states are equal (have the same id)
+     * 
+     * @param kState a State object representing a kState to compare with this 
+     *     state
+     * @return true if the 2 states are equal and false otherwise
+     */
+    bool Equals(const State &kState) const;
     
   private:
     /**
@@ -81,6 +99,12 @@ class State {
     glm::vec2 state_location_; // a vec2 storing the location of the state
     
     double radius_; // a double storing the radius of the state
+    
+    /**
+     * bool storing whether or not the state object is empty (no other variables 
+     * are initialized than is_empty_)
+     */
+    bool is_empty_ = true;
 };
 
 } // namespace turingmachinesimulator

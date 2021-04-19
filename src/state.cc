@@ -5,7 +5,9 @@ namespace turingmachinesimulator {
 State::State(int id, const std::string &kStateName, 
     const glm::vec2 &kStateLocation, double radius) 
     : id_(id), state_name_(kStateName), state_location_(kStateLocation), 
-    radius_(radius) {}
+    radius_(radius) {
+  is_empty_ = false;
+}
     
 void State::SetStateName(const std::string &kStateName) {
   state_name_ = kStateName;
@@ -27,6 +29,10 @@ int State::GetId() const {
   return id_;
 }
 
+bool State::IsEmpty() const {
+  return is_empty_;
+}
+
 bool State::StateCenterIsWithinGivenRadius(const glm::vec2 &kLocation,
     double radius) const {
   const float kDistanceBetweenStateAndPoint = glm::distance(state_location_, 
@@ -45,6 +51,10 @@ void State::Display() const {
   } else {
     DrawNthState();
   }
+}
+
+bool State::Equals(const State &kState) const {
+  return kState.GetId() == id_;
 }
 
 void State::DrawStartingState() const {
