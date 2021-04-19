@@ -62,13 +62,20 @@ void TuringMachineSimulatorApp::mouseDown(ci::app::MouseEvent event) {
   if (kStateWasCreated) {
     return;
   }
-  // if a user defined state is clicked on, it becomes the clicked state
+  // if a user defined state is clicked on, if it was a right click, change the
+  // name of that state, else, it becomes the clicked state
   for (const State &state : states_) {
     if (state.StateCenterIsWithinGivenRadius(kClickLocation, kRadiusOfStates)) {
-      clicked_state_ = state;
-      break; // once the clicked on state is found, nothing to search for
+      if (event.isRight()) {
+        state_being_modified_ = state;
+        editing_state_name_ = true;
+      } else {
+        clicked_state_ = state;
+      }
+      return; // once the clicked on state is found, nothing to search for
     }
   }
+  clicked_state_ = State();
 }
 
 void TuringMachineSimulatorApp::mouseDrag(ci::app::MouseEvent event) {
@@ -86,7 +93,40 @@ void TuringMachineSimulatorApp::mouseDrag(ci::app::MouseEvent event) {
 }
 
 void TuringMachineSimulatorApp::keyDown(ci::app::KeyEvent event) {
-  clicked_state_ = State();
+  // editing state name takes precedence to adding arrow
+  if (editing_state_name_) {
+    if (event.getCode() == ci::app::KeyEvent::KEY_RETURN) {
+      editing_state_name_ = false;
+      return;
+    }
+
+    const std::string kNameToEdit = state_being_modified_.GetStateName();
+    size_t kIndexOfStateBeingModified;
+    for (size_t i = 0; i < states_.size(); i++) {
+      const State kCurrentState = states_.at(i);
+      if (kCurrentState.Equals(state_being_modified_)) {
+        kIndexOfStateBeingModified = i;
+        break;
+      }
+    }
+    
+    if (event.getCode() == ci::app::KeyEvent::KEY_BACKSPACE) {
+      // state name may not be les than 1 character
+      if (kNameToEdit.size() > 1) {
+        const size_t kLastCharacterOfName = kNameToEdit.size() - 1;
+        const std::string kUpdatedName = kNameToEdit.substr(0, 
+            kLastCharacterOfName);
+        state_being_modified_.SetStateName(kUpdatedName);
+        states_[kIndexOfStateBeingModified] = state_being_modified_;
+      }
+      return;
+    }
+    
+    state_being_modified_.SetStateName(kNameToEdit + event.getChar());
+    states_[kIndexOfStateBeingModified] = state_being_modified_;
+    return;
+  }
+  
   const size_t kNotTakingKeyboardInputValue= 5;
   if (index_of_add_arrow_text_to_edit == kNotTakingKeyboardInputValue) {
     return;
@@ -97,24 +137,24 @@ void TuringMachineSimulatorApp::keyDown(ci::app::KeyEvent event) {
     index_of_add_arrow_text_to_edit = 5;
     return;
   }
-  
+
   // if backspace, remove 1 character from the end of the text being edited
   if (event.getCode() == ci::app::KeyEvent::KEY_BACKSPACE) {
-    const std::string kTextToEdit = 
+    const std::string kTextToEdit =
         add_arrow_inputs_[index_of_add_arrow_text_to_edit];
     // if size of text is less than or equal to 0, there's nothing to remove
     if (kTextToEdit.size() > 0) {
       const size_t kLastCharacterOfText = kTextToEdit.size() - 1;
-      add_arrow_inputs_[index_of_add_arrow_text_to_edit] = 
+      add_arrow_inputs_[index_of_add_arrow_text_to_edit] =
           kTextToEdit.substr(0, kLastCharacterOfText);
     }
     return;
   }
-  
+
   // if not a special key, then append the entered character to the text
-  const std::string kTextToEdit = 
+  const std::string kTextToEdit =
       add_arrow_inputs_[index_of_add_arrow_text_to_edit];
-  add_arrow_inputs_[index_of_add_arrow_text_to_edit] = kTextToEdit 
+  add_arrow_inputs_[index_of_add_arrow_text_to_edit] = kTextToEdit
       + event.getChar();
 }
 

@@ -124,7 +124,17 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * State storing the state most recently clicked by the user
      */
     State clicked_state_ = State();
-
+    
+    /**
+     * bool storing whether or not a state name is currently being edited
+     */
+    bool editing_state_name_ = false;
+    
+    /**
+     * State storing the state whose name is being modified
+     */
+    State state_being_modified_ = State();
+    
     /**
      * Vector of strings storing:
      * the read input at index 0, 
@@ -135,17 +145,7 @@ class TuringMachineSimulatorApp : public ci::app::App {
      */
     std::vector<std::string> add_arrow_inputs_ = {"single char", "single char",
         "L/R/N", "q5", "qh"};
-
-    /*size_t kIndexOfReadInput = 0; // size_t storing index of read input
     
-    size_t kIndexOfWriteInput = 1; // size_t storing index of write input
-    
-    size_t kIndexOfShiftInput = 2; // size_t storing index of shift input
-    
-    size_t kIndexOfMoveFromInput = 3; // size_t storing index of move from input
-    
-    size_t kIndexOfMoveToInput = 4; // size_t storing index of move to input*/
-
     /**
      * size_t storing the index of the add arrow input text to edit
      * value is 5 when no add arrow text is being edited
