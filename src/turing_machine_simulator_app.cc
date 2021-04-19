@@ -44,6 +44,7 @@ void TuringMachineSimulatorApp::mouseDown(ci::app::MouseEvent event) {
   // handle clicked boxes
   const bool kBoxWasClicked = HandleClickedBox(kClickLocation);
   if (kBoxWasClicked) {
+    clicked_state_ = State();
     return;
   }
   // check to see if the clicked state has been dragged over an example state
@@ -85,6 +86,7 @@ void TuringMachineSimulatorApp::mouseDrag(ci::app::MouseEvent event) {
 }
 
 void TuringMachineSimulatorApp::keyDown(ci::app::KeyEvent event) {
+  clicked_state_ = State();
   const size_t kNotTakingKeyboardInputValue= 5;
   if (index_of_add_arrow_text_to_edit == kNotTakingKeyboardInputValue) {
     return;
@@ -234,8 +236,7 @@ bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
       kMoveToInputBox)) {
     index_of_add_arrow_text_to_edit = 4;
     input_box_was_clicked = true;
-  }
-  if (kHelperMethods.IsPointInRectangle(kClickLocation, kSubmitButton)) {
+  } else if (kHelperMethods.IsPointInRectangle(kClickLocation, kSubmitButton)) {
     Direction direction = Direction(add_arrow_inputs_, states_);
     if (!direction.IsEmpty()) {
       directions_.push_back(direction);
@@ -243,9 +244,6 @@ bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
     }
     index_of_add_arrow_text_to_edit = -1;
     input_box_was_clicked = true;
-  }
-  if (input_box_was_clicked) {
-    clicked_state_ = State();
   }
   return input_box_was_clicked;
 }

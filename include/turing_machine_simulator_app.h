@@ -123,7 +123,7 @@ class TuringMachineSimulatorApp : public ci::app::App {
     /**
      * State storing the state most recently clicked by the user
      */
-    State clicked_state_;
+    State clicked_state_ = State();
 
     /**
      * Vector of strings storing:
