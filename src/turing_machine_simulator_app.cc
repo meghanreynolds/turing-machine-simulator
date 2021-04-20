@@ -26,6 +26,9 @@ void TuringMachineSimulatorApp::draw() {
   
   // display the add arrow menu
   DrawAddArrowMenu();
+  
+  // display the clear button
+  DrawClearButton();
 
   // display user-defined directions (NOTE: this must come before displaying
   // user-defined states so the arrow goes behind the states)
@@ -237,6 +240,16 @@ void TuringMachineSimulatorApp::DrawAddArrowMenu() const {
       ci::Color("black"));
 }
 
+void TuringMachineSimulatorApp::DrawClearButton() const {
+  ci::gl::color(ci::Color("salmon"));
+  ci::gl::drawSolidRect(kClearButton);
+  ci::gl::color(ci::Color("black"));
+  ci::gl::drawStrokedRect(kClearButton);
+  const glm::vec2 kClearButtonLabelCoordinates = glm::vec2(50, 50);
+  ci::gl::drawStringCentered("CLEAR", kClearButtonLabelCoordinates, 
+      "black");
+}
+
 void TuringMachineSimulatorApp::DrawArrow(const Direction &kDirection) const {
   glm::vec2 move_from_center;
   glm::vec2 move_to_center;
@@ -284,6 +297,15 @@ bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
     }
     index_of_add_arrow_text_to_edit = -1;
     input_box_was_clicked = true;
+  } else if (kHelperMethods.IsPointInRectangle(kClickLocation, kClearButton)) {
+    // reset all modifiable global variables on clear
+    directions_ = {};
+    states_ = {};
+    state_id_ = 0;
+    add_arrow_inputs_ = {"single char", "single char", "L/R/N", "q5", "qh"};
+    index_of_add_arrow_text_to_edit = 5;
+    editing_state_name_ = false;
+    state_being_modified_ = State();
   }
   return input_box_was_clicked;
 }

@@ -71,7 +71,7 @@ The simulation will follow the following conventions and assumptions:
 - [X] Read in the Turing Machine from users dragging and dropping in nodes (representing states of the machine) and 
   entering in rules for changing states(represented by arrows in the state diagram)
 - [X] Let users name non-starting/halting states
-- [ ] Let users clear the simulation out
+- [X] Let users clear the simulation out
 - [X] Let users clear out individual nodes of the state diagram
 
 **Week 2**

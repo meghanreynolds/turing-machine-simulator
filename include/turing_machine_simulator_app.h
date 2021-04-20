@@ -64,6 +64,11 @@ class TuringMachineSimulatorApp : public ci::app::App {
     void DrawAddArrowMenu() const;
     
     /**
+     * This method draws the clear button
+     */
+    void DrawClearButton() const;
+    
+    /**
      * This method draws an arrow on the screen for each user-defined direction
      * NOTE: this method is inside of this class so that the user can update
      * state location after defining a direction for that state
@@ -322,6 +327,22 @@ class TuringMachineSimulatorApp : public ci::app::App {
      */
     const ci::Rectf kSubmitButton = ci::Rectf(kUpperCornerOfSubmit,
         kLowerCornerOfSubmit);
+
+    /**
+     * vec2 storing the upper left corner of the clear button
+     */
+    const glm::vec2 kUpperCornerClearButton = glm::vec2(10, 10);
+    
+    /**
+     * vec2 storing the lower right corner of the clear button
+     */
+    const glm::vec2 kLowerCornerClearButton = glm::vec2(90, 90);
+    
+    /**
+     * Rectf storing the clear button
+     */
+    const ci::Rectf kClearButton = ci::Rectf(kUpperCornerClearButton,
+        kLowerCornerClearButton);
 };
 
 } // namespace turingmachinesimulator
