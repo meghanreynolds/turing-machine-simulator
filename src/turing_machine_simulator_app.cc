@@ -347,11 +347,12 @@ bool TuringMachineSimulatorApp::HandleStateDeletion(const glm::vec2
     size_t index_in_directions = 0;
     for (size_t i = 0; i < kOriginalDirections.size(); i++) {
       Direction current_direction = kOriginalDirections.at(i);
+      // NOTE: Must be in an else if statement in case state to move to is the
+      // same as the state to move from
       if (current_direction.GetStateToMoveTo().Equals(state_to_erase)) {
         directions_.erase(directions_.begin() + index_in_directions);
         index_in_directions -= 1;
-      }
-      if (current_direction.GetStateToMoveFrom().Equals(state_to_erase)) {
+      } else if (current_direction.GetStateToMoveFrom().Equals(state_to_erase)) {
         directions_.erase(directions_.begin() + index_in_directions);
         index_in_directions -= 1;
       }
