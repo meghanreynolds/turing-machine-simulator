@@ -32,9 +32,8 @@ TEST_CASE("Test Correctly Checks If A Point Is Within a Given Radius") {
   
   SECTION("Test Given Radius is Negative", "[within radius]") {
     const glm::vec2 kOtherPointLocation = glm::vec2(1, 1);
-    REQUIRE(
-        kState.IsStateCenterWithinGivenRadiusOfPoint(kOtherPointLocation, -10) 
-        == false);
+    REQUIRE(kState.IsStateCenterWithinGivenRadiusOfPoint(kOtherPointLocation, 
+        -10) == false);
   }
   
   SECTION("Test Given Radius is 0 And Given Point Isn't State's Center", 
