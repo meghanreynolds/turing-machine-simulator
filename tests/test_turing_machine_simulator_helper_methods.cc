@@ -1,6 +1,6 @@
 #include <catch2/catch.hpp>
 
-#include "turing_machine_simulator_helper_methods.h"
+#include "turing_machine_simulator_helper.h"
 
 using namespace turingmachinesimulator;
 
@@ -9,8 +9,8 @@ using namespace turingmachinesimulator;
  * Correctly Checks If Given Point Is In Given Rectangle
  */
 TEST_CASE("Test Checks If Given Point Is In Given Rectangle") {
-  const TuringMachineSimulatorHelperMethods kHelperMethods =
-      TuringMachineSimulatorHelperMethods();
+  const TuringMachineSimulatorHelper kHelperMethods =
+      TuringMachineSimulatorHelper();
   
   SECTION("Point Is Not In Rectangle", "[point is in rectangle]") {
     const glm::vec2 kPoint = glm::vec2(15, 15);

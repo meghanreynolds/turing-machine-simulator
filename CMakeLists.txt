@@ -41,7 +41,7 @@ include("${CINDER_PATH}/proj/cmake/modules/cinderMakeApp.cmake")
 list(APPEND SOURCE_FILES    src/turing_machine_simulator_app.cc
                             src/state.cc
                             src/direction.cc
-                            src/turing_machine_simulator_helper_methods.cc)
+        src/turing_machine_simulator_helper.cc)
 
 list(APPEND TEST_FILES tests/test_state.cc
                        tests/test_direction.cc

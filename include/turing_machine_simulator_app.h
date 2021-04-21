@@ -1,15 +1,15 @@
 #pragma once
 
+#include<algorithm>
+#include<string>
+#include <vector>
+
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
 #include "direction.h"
 #include "state.h"
-#include "turing_machine_simulator_helper_methods.h"
-
-#include<algorithm>
-#include<string>
-#include <vector>
+#include "turing_machine_simulator_helper.h"
 
 namespace turingmachinesimulator {
 
@@ -58,20 +58,22 @@ class TuringMachineSimulatorApp : public ci::app::App {
   private:
     /**
      * This method draws the add arrow menu to the screen
-     * NOTE: All "magic numbers" found in this method were found by experimenting
+     * 
+     * NOTE: All magic numbers found in this method were found by experimenting
      * for the most visually appealing appearance of the menu
      */
     void DrawAddArrowMenu() const;
     
     /**
-     * This method draws the clear button
+     * This method draws the clear button to the screen
      */
     void DrawClearButton() const;
     
     /**
      * This method draws an arrow on the screen for each user-defined direction
-     * NOTE: this method is inside of this class so that the user can update
-     * state location after defining a direction for that state
+     * 
+     * NOTE: this method is inside of this class to all users to update
+     * state locations even after defining a directions for that state
      * 
      * @param kDirection a Direction to draw an arrow for
      */
@@ -82,7 +84,7 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * event if a box was clicked
      * 
      * @param kClickLocation a vec2 representing where the user clicked
-     * @return true if a box was clicked, false otherwise
+     * @return a bool that is true if a box was clicked, false otherwise
      */
     bool HandleClickedBox(const glm::vec2 &kClickLocation);
 
@@ -91,7 +93,7 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * event if a state was created
      * 
      * @param kClickLocation a vec2 representing where the user clicked
-     * @return true if a new state was created
+     * @return a bool that is true if a new state was created
      */
     bool HandleStateCreation(const glm::vec2 &kClickLocation);
     
@@ -100,9 +102,25 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * event if the user is trying to delete a state
      * 
      * @param kClickLocation a vec2 representing the location of the user's click
-     * @return true if a state was deleted, false otherwise
+     * @return a bool that is true if a state was deleted, false otherwise
      */
     bool HandleStateDeletion(const glm::vec2 &kClickLocation);
+    
+    /**
+     * This method takes in a key event and updates the state whose name is
+     * being edited's name accordingly
+     * 
+     * @param kKeyEvent a KeyEvent representing the key the user pressed
+     */
+    void EditStateName(const ci::app::KeyEvent &kKeyEvent);
+
+    /**
+     * This method takes in a key event and updates the add arrow input box that
+     * is being edited's text accordingly
+     * 
+     * @param kKeyEvent a KeyEvent representing the key the user pressed
+     */
+    void EditAddArrowInputBox(const ci::app::KeyEvent &kKeyEvent);
     
     /**
      * int storing the window size, must be at least 600 
@@ -116,7 +134,7 @@ class TuringMachineSimulatorApp : public ci::app::App {
     int state_id_ = 0;
 
     /**
-     * vector storing all the user-defined states
+     * vector storing all of the user-defined states
      */
     std::vector<State> states_ = {};
 
@@ -126,7 +144,8 @@ class TuringMachineSimulatorApp : public ci::app::App {
     std::vector<Direction> directions_ = {};
 
     /**
-     * State storing the state most recently clicked by the user
+     * State storing the state most recently clicked by the user, empty state if 
+     * the user has not recently clicked a state
      */
     State clicked_state_ = State();
     
@@ -136,7 +155,8 @@ class TuringMachineSimulatorApp : public ci::app::App {
     bool editing_state_name_ = false;
     
     /**
-     * State storing the state whose name is being modified
+     * State storing the state whose name is being modified, empty if a state 
+     * name is not currently being edited
      */
     State state_being_modified_ = State();
     
@@ -145,17 +165,27 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * the read input at index 0, 
      * the write input at index 1, 
      * the shift input at index 2, 
-     * the move from state name at index 3,
-     * the move to state name at index 4
+     * the state to move from's name at index 3,
+     * the state to move to's name at index 4
      */
     std::vector<std::string> add_arrow_inputs_ = {"single char", "single char",
         "L/R/N", "q5", "qh"};
     
     /**
-     * size_t storing the index of the add arrow input text to edit
+     * size_t storing the index of the add arrow box input text to edit,
      * value is 5 when no add arrow text is being edited
      */
     size_t index_of_add_arrow_text_to_edit = 5;
+
+    /**
+     * Turing machine simulator helper object storing methods for use in the 
+     * UI Code
+     */
+    const TuringMachineSimulatorHelper kHelperMethods = 
+        TuringMachineSimulatorHelper();
+    
+    // NOTE: All magic numbers found below were found by experimenting
+    // for the most visually appealing appearance of the menu
     
     /**
      * int storing the x boundary for the menu
@@ -170,8 +200,8 @@ class TuringMachineSimulatorApp : public ci::app::App {
     /**
      * int soring the x coordinate of the example states
      */
-    const int kXLocationOfExampleStates = (int) kWindowSize -
-                                          (kRadiusOfStates * 2);
+    const int kXLocationOfExampleStates = (int) kWindowSize - (kRadiusOfStates 
+        * 2);
 
     /**
      * vec2 storing the coordinates of the center of the example starting state
@@ -219,6 +249,30 @@ class TuringMachineSimulatorApp : public ci::app::App {
      */
     const int kAddArrowBoxYBoundary = (int) 6 * kWindowSize / 8;
 
+    /**
+     * size_t storing the index of read input in add_arrow_inputs_
+     */
+    const size_t kIndexOfReadInput = 0;
+    
+    /**
+     * size_t storing the index of the write input in add_arrow_inputs_
+     */
+    const size_t kIndexOfWriteInput = 1;
+    
+    /**
+     * size_t storing the index of the shift input in add_arrow_inputs_
+     */
+    const size_t kIndexOfShiftInput = 2;
+    
+    /**
+     * size_t storing the index of the move from input in add_arrow_inputs_
+     */
+    const size_t kIndexOfMoveFromInput = 3;
+    
+    /**
+     * size_t storing the index of the move to input in add_arrow_inputs_
+     */
+    const size_t kIndexOfMoveToInput = 4;
 
     /**
      * vec2 storing the upper left corner of the read input box

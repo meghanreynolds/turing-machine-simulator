@@ -1,8 +1,8 @@
 #pragma once
 
-#include "cinder/gl/gl.h"
-
 #include <string>
+
+#include "cinder/gl/gl.h"
 
 namespace turingmachinesimulator {
 
@@ -27,8 +27,10 @@ class State {
      * @param radius a double representing the radius of the state in the 
      *     simulator app
      */
-    State(int id, const std::string &kStateName, 
-        const glm::vec2 &kStateLocation, double radius);
+    State(int id, const std::string &kStateName, const glm::vec2 &kStateLocation, 
+        double radius);
+
+    int GetId() const;
     
     void SetStateName(const std::string &kStateName);
     
@@ -38,43 +40,43 @@ class State {
     
     glm::vec2 GetStateLocation() const;
     
-    int GetId() const;
+    /**
+     * This method returns true if the state is empty (initialized via default
+     * constructor) and false otherwise
+     * 
+     * @return a bool that is true if the state object is empty and false 
+     *     otherwise
+     */
+    bool IsEmpty() const;
+
+    /**
+     * This method compares this state object with another state object to 
+     * see if the 2 states are equal (have the same id)
+     * 
+     * @param kState a State object representing a state to compare with this 
+     *     state
+     * @return a bool that is true if the 2 states are equal(same ids) and 
+     *     false otherwise
+     */
+    bool Equals(const State &kState) const;
     
     /**
-     * This method takes in a location and radius and returns true if the state
-     * is within the radius of the given location
+     * This method takes in a point and radius and returns true if the state's
+     * center is within the radius of the given point
      * 
-     * @param kLocation a vec2 representing a point
+     * @param kPoint a vec2 representing a point
      * @param radius a double representing a radius to see if the given location 
      *     is within
      * @return a bool that is true if the state is within the given radius of
      *     the given point
      */
-    bool StateCenterIsWithinGivenRadius(const glm::vec2 &kLocation,
-        double radius) const; 
-    
+    bool IsStateCenterWithinGivenRadiusOfPoint(const glm::vec2 &kPoint,
+        double radius) const;
+
     /**
-     * This method displays the state in the app
+     * This method displays the state in the simulator app
      */
     void Display() const;
-    
-    /**
-     * This method returns true if the state is empty (no other variables are
-     * initialized) and false otherwise
-     * 
-     * @return true if the state object is empty and false otherwise
-     */
-    bool IsEmpty() const;
-    
-    /**
-     * This method compares this state object with another state object to 
-     * see if the 2 states are equal (have the same id)
-     * 
-     * @param kState a State object representing a kState to compare with this 
-     *     state
-     * @return true if the 2 states are equal and false otherwise
-     */
-    bool Equals(const State &kState) const;
     
   private:
     /**
@@ -96,13 +98,20 @@ class State {
     
     std::string state_name_; // a string storing the name of the the state
     
-    glm::vec2 state_location_; // a vec2 storing the location of the state
-    
-    double radius_; // a double storing the radius of the state
+    /**
+     * a vec2 storing the location of the center of the state in the simulator
+     * app
+     */
+    glm::vec2 state_location_;
     
     /**
-     * bool storing whether or not the state object is empty (no other variables 
-     * are initialized than is_empty_)
+     * a double storing the radius of the state in the simulator app
+     */
+    double radius_;
+    
+    /**
+     * a bool storing whether or not the state object is empty 
+     * (initialized with the default constructor)
      */
     bool is_empty_ = true;
 };

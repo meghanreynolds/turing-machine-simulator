@@ -1,8 +1,8 @@
-#include "turing_machine_simulator_helper_methods.h"
+#include "turing_machine_simulator_helper.h"
 
 namespace turingmachinesimulator {
 
-bool TuringMachineSimulatorHelperMethods::IsPointInRectangle(const glm::vec2 
+bool TuringMachineSimulatorHelper::IsPointInRectangle(const glm::vec2 
     &kPoint, const ci::Rectf &kRectangle) {
   const glm::vec2 kRectangleUpperLeftCorner = kRectangle.getUpperLeft();
   const glm::vec2 kRectangleLowerRightCorner = kRectangle.getLowerRight();

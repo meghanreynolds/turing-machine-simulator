@@ -3,10 +3,14 @@
 namespace turingmachinesimulator {
 
 State::State(int id, const std::string &kStateName, 
-    const glm::vec2 &kStateLocation, double radius) 
-    : id_(id), state_name_(kStateName), state_location_(kStateLocation), 
+    const glm::vec2 &kStateLocation, double radius) : id_(id), 
+    state_name_(kStateName), state_location_(kStateLocation), 
     radius_(radius) {
   is_empty_ = false;
+}
+
+int State::GetId() const {
+  return id_;
 }
     
 void State::SetStateName(const std::string &kStateName) {
@@ -25,18 +29,18 @@ glm::vec2 State::GetStateLocation() const {
   return state_location_;
 }
 
-int State::GetId() const {
-  return id_;
-}
-
 bool State::IsEmpty() const {
   return is_empty_;
 }
 
-bool State::StateCenterIsWithinGivenRadius(const glm::vec2 &kLocation,
+bool State::Equals(const State &kState) const {
+  return kState.GetId() == id_;
+}
+
+bool State::IsStateCenterWithinGivenRadiusOfPoint(const glm::vec2 &kPoint,
     double radius) const {
-  const float kDistanceBetweenStateAndPoint = glm::distance(state_location_, 
-      kLocation);
+  const float kDistanceBetweenStateAndPoint = glm::distance(state_location_,
+      kPoint);
   if (kDistanceBetweenStateAndPoint <= radius) {
     return true;
   }
@@ -51,10 +55,6 @@ void State::Display() const {
   } else {
     DrawNthState();
   }
-}
-
-bool State::Equals(const State &kState) const {
-  return kState.GetId() == id_;
 }
 
 void State::DrawStartingState() const {
