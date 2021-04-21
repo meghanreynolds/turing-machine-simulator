@@ -114,11 +114,23 @@ TEST_CASE("Test Direction Object Is Created Correctly") {
   }
       
   SECTION("Test Move From State Name Does Not Exist", "[initialization][empty]") {
-    const std::vector<std::string> kInputs = {"alphabet", "b", "l", "qn", "qh"};
+    const std::vector<std::string> kInputs = {"a", "b", "l", "qn", "qh"};
     State kQ1 = State(1, "q1",
         glm::vec2(0, 0), 5);
     State kQh = State(2, "qh",
        glm::vec2(0, 1), 6);
+    const std::vector<State> kPossibleStates = {kQ1, kQh};
+    const Direction kDirection = Direction(kInputs, kPossibleStates);
+    REQUIRE(kDirection.IsEmpty());
+  }
+
+  SECTION("Test Move From State Is The Halting State", "[initialization]"
+      "[empty]") {
+    const std::vector<std::string> kInputs = {"a", "b", "l", "qh", "q1"};
+    State kQ1 = State(1, "q1",
+        glm::vec2(0, 0), 5);
+    State kQh = State(2, "qh",
+        glm::vec2(0, 1), 6);
     const std::vector<State> kPossibleStates = {kQ1, kQh};
     const Direction kDirection = Direction(kInputs, kPossibleStates);
     REQUIRE(kDirection.IsEmpty());

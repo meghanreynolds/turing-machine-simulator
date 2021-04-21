@@ -42,6 +42,11 @@ Direction::Direction(const std::vector<std::string> &kData,
   // validate move from and move to states
   const size_t kIndexOfMoveFromName = 3;
   const std::string kMoveFromName = kData[kIndexOfMoveFromName];
+  // do not create a non-empty direction if move from state is the halting state
+  // because it is impossible to change states from the halting state
+  if (kMoveFromName == "qh") {
+    return;
+  }
   const size_t kIndexOfMoveToName = 4;
   const std::string kMoveToName = kData[kIndexOfMoveToName];
   State move_from_state = State();
