@@ -50,6 +50,13 @@ class Direction {
     
     State GetStateToMoveTo() const;
     
+    /**
+     * This method returns the string representation of the Direction Object
+     * 
+     * @return a string representing the Direction Object
+     */
+    std::string ToString() const;
+    
   private:
     /**
      * Character representing the character that must be read for this direction 

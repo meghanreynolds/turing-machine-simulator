@@ -6,6 +6,7 @@ using namespace turingmachinesimulator;
 /**
  * Partitions Test As Follows:
  * Direction Object Correctly Created
+ * String Representation Correctly Created 
  */
 TEST_CASE("Test Direction Object Is Created Correctly") {
   SECTION("Test Wrong Input String Vector Is Too Small", "[initialization]") {
@@ -177,5 +178,18 @@ TEST_CASE("Test Direction Object Is Created Correctly") {
     REQUIRE(kDirection.GetScannerMovement() == 'n');
     REQUIRE(kDirection.GetStateToMoveFrom().Equals(kQ1));
     REQUIRE(kDirection.GetStateToMoveTo().Equals(kQh));
+  }
+}
+
+TEST_CASE("String Representation Correctly Created") {
+  SECTION("Test String Representation", "[string]") {
+    const std::vector<std::string> kInputs = {"a", "b", "n", "q1", "qh"};
+    State kQ1 = State(1, "q1",
+        glm::vec2(0, 0), 5);
+    State kQh = State(2, "qh",
+        glm::vec2(0, 1), 6);
+    const std::vector<State> kPossibleStates = {kQ1, kQh};
+    const Direction kDirection = Direction(kInputs, kPossibleStates);
+    REQUIRE(kDirection.ToString() == "a, b, N");
   }
 }

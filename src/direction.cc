@@ -101,5 +101,12 @@ State Direction::GetStateToMoveTo() const {
   return state_to_move_to_;
 }
 
+std::string Direction::ToString() const {
+  std::stringstream direction_as_string;
+  direction_as_string << read_ << ", " << write_ << ", " 
+      << (char) std::toupper(scanner_movement_);
+  return direction_as_string.str();
+}
+
 } // namespace turingmachinesimulator
 

@@ -233,6 +233,11 @@ void TuringMachineSimulatorApp::DrawArrow(const Direction &kDirection) const {
   }
   ci::gl::color(ci::Color("black"));
   ci::gl::drawLine(move_from_center, move_to_center);
+  const glm::vec2 kLocationOfDirectionText = 
+      kHelperMethods.GetDirectionTextLocation(move_from_center, move_to_center, 
+      kRadiusOfStates);
+  ci::gl::drawString(kDirection.ToString(), kLocationOfDirectionText, 
+      "black");
 }
 
 bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2

@@ -28,6 +28,17 @@ class TuringMachineSimulatorHelper {
      */
     static bool IsPointInRectangle(const glm::vec2 &kPoint, 
         const ci::Rectf &kRectangle);
+    
+    /**
+     * This method calculates the location of the direction arrow's text
+     * 
+     * @param kPointA the location of the center of the first state
+     * @param kPointB the location of the center of the second state
+     * @param state_radius the radius of the states
+     * @return a vec2 representing the location of the direction arrow's text
+     */
+    static glm::vec2 GetDirectionTextLocation(const glm::vec2 &kPointA, 
+        const glm::vec2 &kPointB, double state_radius);
 };
 
 } // namespace turingmachinesimulator
