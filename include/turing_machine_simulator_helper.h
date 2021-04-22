@@ -39,6 +39,23 @@ class TuringMachineSimulatorHelper {
      */
     static glm::vec2 GetDirectionTextLocation(const glm::vec2 &kPointA, 
         const glm::vec2 &kPointB, double state_radius);
+    
+    /**
+     * This method checks to see if a point of the tape has been clicked and
+     * returns the index of the square that was clicked (if square 1 is clicked
+     * it returns 0) 
+     * 8 is returned if no square on the tape was clicked
+     * 
+     * @param kClickedPoint a vec2 representing the point that the user clicked
+     * @param kTapeUpperCorner a vec2 representing the upper left corner of the
+     *     tape
+     * @param kTapeLowerCorner a vec2 representing the lower right corner of the
+     *     tape
+     * @return a size_t representing the index of the square on the tape that
+     *     was clicked, or 8 if no square was clicked
+     */
+     static size_t GetIndexOfSquareOfTapeClicked(const glm::vec2 &kClickedPoint, 
+         const glm::vec2 &kTapeUpperCorner, const glm::vec2 &kTapeLowerCorner);
 };
 
 } // namespace turingmachinesimulator

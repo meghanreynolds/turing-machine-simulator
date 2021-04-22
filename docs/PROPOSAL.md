@@ -87,7 +87,7 @@ The simulation will follow the following conventions and assumptions:
 **Stretch Goals**
 - [ ] Animate the state diagram as the simulation is running (Highlight current state and raise arrows as their instructions 
       are executed)
-- [ ] Let users drag and drop in arrows
+- [ ] Visually support having multiple arrows between the same states
 - [ ] Let users pick where on the tape the scanner starts
 
 ## Figma Rendering ##

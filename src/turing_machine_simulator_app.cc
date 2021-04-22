@@ -3,20 +3,22 @@
 namespace turingmachinesimulator {
 
 TuringMachineSimulatorApp::TuringMachineSimulatorApp() {
-  ci::app::setWindowSize(kWindowSize, kWindowSize);
+  ci::app::setWindowSize(kHorizontalWindowSize, kVerticalWindowSize);
 }
 
 void TuringMachineSimulatorApp::draw() {
   // set background color to white
   ci::gl::color(ci::Color("white"));
   const glm::vec2 kUpperScreenCorner = glm::vec2(0,0);
-  const glm::vec2 kLowerScreenCorner = glm::vec2(kWindowSize, kWindowSize);
+  const glm::vec2 kLowerScreenCorner = glm::vec2(kHorizontalWindowSize,
+      kVerticalWindowSize);
   ci::gl::drawSolidRect(ci::Rectf(kUpperScreenCorner, kLowerScreenCorner));
   
   // draw menu bar rectangle
   ci::gl::color(ci::Color("ghostwhite"));
   const glm::vec2 kMenuUpperCorner = glm::vec2(kMenuXBoundary, 0);
-  const glm::vec2 kMenuLowerCorner = glm::vec2(kWindowSize, kWindowSize);
+  const glm::vec2 kMenuLowerCorner = glm::vec2(kHorizontalWindowSize, 
+      kVerticalWindowSize);
   ci::gl::drawSolidRect(ci::Rectf(kMenuUpperCorner, kMenuLowerCorner));
   
   // display example states to menu
@@ -29,7 +31,10 @@ void TuringMachineSimulatorApp::draw() {
   
   // display the clear button
   DrawClearButton();
-
+  
+  // display the tape
+  DrawTape();
+  
   // display user-defined directions
   // NOTE: this must come before displaying user-defined states so the arrow 
   // goes behind the states
@@ -117,6 +122,12 @@ void TuringMachineSimulatorApp::keyDown(ci::app::KeyEvent event) {
       || kEventCode == ci::app::KeyEvent::KEY_RSHIFT) {
     return;
   }
+  // editing tape character takes precedence to all other edits
+  if (editing_tape_character_) {
+    EditTapeCharacter(event);
+    return;
+  }
+  
   // editing state name takes precedence to adding arrow if both are in progress
   if (editing_state_name_) {
     EditStateName(event);
@@ -134,7 +145,7 @@ void TuringMachineSimulatorApp::DrawAddArrowMenu() const {
   ci::gl::color(ci::Color("papayawhip"));
   const glm::vec2 kUpperCorner= glm::vec2(kAddArrowBoxXBoundary,
       kAddArrowBoxYBoundary);
-  const glm::vec2 kLowerCorner = glm::vec2(kWindowSize, kWindowSize);
+  const glm::vec2 kLowerCorner = glm::vec2(kHorizontalWindowSize, kVerticalWindowSize);
   ci::gl::drawSolidRect(ci::Rectf(kUpperCorner, kLowerCorner));
   
   //outline the box
@@ -142,7 +153,7 @@ void TuringMachineSimulatorApp::DrawAddArrowMenu() const {
   ci::gl::drawStrokedRect(ci::Rectf(kUpperCorner, kLowerCorner));
   
   // draw menu heading
-  const float kXLocationOfHeading = ((kWindowSize - kAddArrowBoxXBoundary) / 2) 
+  const float kXLocationOfHeading = ((kHorizontalWindowSize - kAddArrowBoxXBoundary) / 2) 
       + kAddArrowBoxXBoundary;
   const glm::vec2 kLocationOfHeading = glm::vec2(kXLocationOfHeading, 
       kAddArrowBoxYBoundary + 5);
@@ -240,6 +251,45 @@ void TuringMachineSimulatorApp::DrawArrow(const Direction &kDirection) const {
       "black");
 }
 
+void TuringMachineSimulatorApp::DrawTape() const {
+  const double kPixelLengthOfTape = kLowerCornerOfTape.x - kUpperCornerOfTape.x;
+  const double kHorizontalSizeOfSquares = kPixelLengthOfTape / tape_.size();
+  glm::vec2 square_upper_corner = kUpperCornerOfTape;
+  glm::vec2 square_lower_corner = glm::vec2(kUpperCornerOfTape.x 
+      + kHorizontalSizeOfSquares, kLowerCornerOfTape.y);
+  
+  ci::gl::color(ci::Color("black"));
+  for (size_t i = 0; i < tape_.size(); i++) {
+    // draw the square
+    ci::gl::drawStrokedRect(ci::Rectf(square_upper_corner,
+        square_lower_corner));
+    // display the character
+    const double kHorizontalCenter = (square_upper_corner.x 
+        + square_lower_corner.x) / 2;
+    const double kVerticalCenter = (square_upper_corner.y 
+        + square_lower_corner.y) / 2;
+    std::stringstream character_as_string;
+    character_as_string << tape_.at(i);
+    ci::gl::drawString(character_as_string.str(), 
+        glm::vec2(kHorizontalCenter, kVerticalCenter), "black");
+    // draw the scanner if it is reading this character
+    if (i == index_of_character_being_read_) {
+      const int kVerticalDistanceFromTape = 100;
+      const glm::vec2 kLowerLeftPoint = glm::vec2(square_upper_corner.x, 
+          square_lower_corner.y + kVerticalDistanceFromTape);
+      const glm::vec2 kLowerRightPoint = glm::vec2(square_lower_corner.x, 
+          square_lower_corner.y + kVerticalDistanceFromTape);
+      const glm::vec2 kPointOfTriangle = glm::vec2(kHorizontalCenter, 
+          square_lower_corner.y);
+      ci::gl::drawSolidTriangle(kLowerLeftPoint, kPointOfTriangle,
+          kLowerRightPoint);
+    }
+    // increment the horizontal coordinates of the square
+    square_upper_corner.x = square_lower_corner.x;
+    square_lower_corner.x += kHorizontalSizeOfSquares;
+  }
+}
+
 bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
     &kClickLocation) {
   const size_t kIndexOfNoTextToEdit = 5;
@@ -278,12 +328,23 @@ bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
     // reset all modifiable global variables when clear is clicked
     directions_ = {};
     states_ = {};
+    tape_ = {'-', '-', '-', '-', '-', '-', '-', '-'};
     state_id_ = 0;
     add_arrow_inputs_ = {"single char", "single char", "L/R/N", "q5", "qh"};
     index_of_add_arrow_text_to_edit = 5;
     editing_state_name_ = false;
     state_being_modified_ = State();
+    index_of_character_being_edited_ = 8;
+    editing_tape_character_ = false;
   }
+  const size_t kIndexOfTapeSquareClicked = 
+      kHelperMethods.GetIndexOfSquareOfTapeClicked(kClickLocation, 
+      kUpperCornerOfTape, kLowerCornerOfTape);
+  if (kIndexOfTapeSquareClicked != 8) {
+    editing_tape_character_ = true;
+    index_of_character_being_edited_ = kIndexOfTapeSquareClicked;
+  }
+  
   return input_box_was_clicked;
 }
 
@@ -361,6 +422,27 @@ bool TuringMachineSimulatorApp::HandleStateDeletion(const glm::vec2
     return true;
   }
   return false;
+}
+
+void TuringMachineSimulatorApp::EditTapeCharacter(const ci::app::KeyEvent 
+    &kKeyEvent) {
+  const int kEventCode = kKeyEvent.getCode();
+  // on return, stop editing the tape character name
+  if (kEventCode == ci::app::KeyEvent::KEY_RETURN) {
+    editing_tape_character_ = false;
+    index_of_character_being_edited_ = 8;
+    return;
+  }
+
+  // make the character a blank (-) on backspace
+  if (kEventCode == ci::app::KeyEvent::KEY_BACKSPACE) {
+    tape_[index_of_character_being_edited_] = '-';
+    return;
+  }
+
+  // if no special event codes were typed, change the character to be the
+  // character entered by the user
+  tape_[index_of_character_being_edited_] = kKeyEvent.getChar();
 }
 
 void TuringMachineSimulatorApp::EditStateName(const ci::app::KeyEvent 

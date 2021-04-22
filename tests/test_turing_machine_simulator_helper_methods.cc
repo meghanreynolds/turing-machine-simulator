@@ -8,6 +8,7 @@ using namespace turingmachinesimulator;
  * Partitions Testing As Follows:
  * Correctly Checks If Given Point Is In Given Rectangle
  * Correctly Calculates Location Of Direction Text
+ * Correctly Evaluates Index Of Square On Tape That Was Clicked
  */
 TEST_CASE("Test Checks If Given Point Is In Given Rectangle") {
   const TuringMachineSimulatorHelper kHelperMethods =
@@ -80,5 +81,66 @@ TEST_CASE("Test Correctly Calculates Location of Direction Text") {
     const glm::vec2 kPointB = glm::vec2(60, 60);
     REQUIRE(kHelperMethods.GetDirectionTextLocation(kPointA, kPointB, 10) 
         == glm::vec2(45, 35));
+  }
+}
+
+TEST_CASE("Test Evaluation Of Index Of Square On Tape That Was Clicked") {
+  const TuringMachineSimulatorHelper kHelperMethods =
+      TuringMachineSimulatorHelper();
+  
+  SECTION("Test Where No Square On Tape Was Clicked", "[tape]") {
+    const glm::vec2 kClickedPoint = glm::vec2(9, 9);
+    const glm::vec2 kUpperCornerOfTape = glm::vec2(10, 10);
+    const glm::vec2 kLowerCornerOfTape = glm::vec2(26, 15);
+    REQUIRE(kHelperMethods.GetIndexOfSquareOfTapeClicked(kClickedPoint, 
+        kUpperCornerOfTape, kLowerCornerOfTape) == 8);
+  }
+
+  SECTION("Test Where Left Vertical Border Of Tape Is Clicked", "[tape]") {
+    const glm::vec2 kClickedPoint = glm::vec2(10, 11);
+    const glm::vec2 kUpperCornerOfTape = glm::vec2(10, 10);
+    const glm::vec2 kLowerCornerOfTape = glm::vec2(26, 15);
+    REQUIRE(kHelperMethods.GetIndexOfSquareOfTapeClicked(kClickedPoint,
+        kUpperCornerOfTape, kLowerCornerOfTape) == 0);
+  }
+
+  SECTION("Test Where Right Vertical Border Of Tape Is Clicked", "[tape]") {
+    const glm::vec2 kClickedPoint = glm::vec2(26, 11);
+    const glm::vec2 kUpperCornerOfTape = glm::vec2(10, 10);
+    const glm::vec2 kLowerCornerOfTape = glm::vec2(26, 15);
+    REQUIRE(kHelperMethods.GetIndexOfSquareOfTapeClicked(kClickedPoint,
+        kUpperCornerOfTape, kLowerCornerOfTape) == 7);
+  }
+  
+  SECTION("Test Where Border Between 2 Squares Is Clicked", "[tape]") {
+    const glm::vec2 kClickedPoint = glm::vec2(18, 11);
+    const glm::vec2 kUpperCornerOfTape = glm::vec2(10, 10);
+    const glm::vec2 kLowerCornerOfTape = glm::vec2(26, 15);
+    REQUIRE(kHelperMethods.GetIndexOfSquareOfTapeClicked(kClickedPoint,
+        kUpperCornerOfTape, kLowerCornerOfTape) == 3);
+  }
+  
+  SECTION("Test Where 1st Square On Tape Was Clicked", "[tape]") {
+    const glm::vec2 kClickedPoint = glm::vec2(11, 11);
+    const glm::vec2 kUpperCornerOfTape = glm::vec2(10, 10);
+    const glm::vec2 kLowerCornerOfTape = glm::vec2(26, 15);
+    REQUIRE(kHelperMethods.GetIndexOfSquareOfTapeClicked(kClickedPoint,
+        kUpperCornerOfTape, kLowerCornerOfTape) == 0);
+  }
+  
+  SECTION("Test Where Last Square On Tape Was Clicked", "[tape]") {
+    const glm::vec2 kClickedPoint = glm::vec2(25, 11);
+    const glm::vec2 kUpperCornerOfTape = glm::vec2(10, 10);
+    const glm::vec2 kLowerCornerOfTape = glm::vec2(26, 15);
+    REQUIRE(kHelperMethods.GetIndexOfSquareOfTapeClicked(kClickedPoint,
+        kUpperCornerOfTape, kLowerCornerOfTape) == 7);
+  }
+  
+  SECTION("Test Where Square In Middle Of Tape Was Clicked", "[tape]") {
+    const glm::vec2 kClickedPoint = glm::vec2(21, 11);
+    const glm::vec2 kUpperCornerOfTape = glm::vec2(10, 10);
+    const glm::vec2 kLowerCornerOfTape = glm::vec2(26, 15);
+    REQUIRE(kHelperMethods.GetIndexOfSquareOfTapeClicked(kClickedPoint,
+        kUpperCornerOfTape, kLowerCornerOfTape) == 5);
   }
 }

@@ -78,7 +78,12 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * @param kDirection a Direction to draw an arrow for
      */
     void DrawArrow(const Direction &kDirection) const;
-
+    
+    /**
+     * This method draws the tape on the screen
+     */
+     void DrawTape() const;
+     
     /**
      * This method takes in the location of the user's click and handles the 
      * event if a box was clicked
@@ -107,6 +112,14 @@ class TuringMachineSimulatorApp : public ci::app::App {
     bool HandleStateDeletion(const glm::vec2 &kClickLocation);
     
     /**
+     * This method takes in a key event and updates the character on the tape
+     * that is being edited accordingly
+     * 
+     * @param kKeyEvent a KeyEvent representing the key the user pressed
+     */
+    void EditTapeCharacter(const ci::app::KeyEvent &kKeyEvent);
+    
+    /**
      * This method takes in a key event and updates the state whose name is
      * being edited's name accordingly
      * 
@@ -121,11 +134,16 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * @param kKeyEvent a KeyEvent representing the key the user pressed
      */
     void EditAddArrowInputBox(const ci::app::KeyEvent &kKeyEvent);
+
+    /**
+     * int storing the horizontal window size, must be at least 600 
+     */
+    const int kHorizontalWindowSize = 1000;
     
     /**
-     * int storing the window size, must be at least 600 
+     * int storing the vertical window size, must be at least 600 
      */
-    const int kWindowSize = 800;
+    const int kVerticalWindowSize = 800;
 
     /**
      * int storing an id to assign each state created by the user (incremented 
@@ -142,7 +160,29 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * vector storing all of the user-defined directions
      */
     std::vector<Direction> directions_ = {};
+    
+    /**
+     * vector storing the characters on the tape (by default starts with 8
+     * blank characters)
+     */
+     std::vector<char> tape_ = {'-', '-', '-', '-', '-', '-', '-', '-'};
 
+    /**
+     * size_t storing the index of the character the scanner is reading
+     */
+    size_t index_of_character_being_read_ = 0;
+    
+    /**
+     * size_t storing the index of the character that is being edited
+     * This is 8 when there are no characters being edited
+     */
+     size_t index_of_character_being_edited_ = 8;
+     
+     /**
+      * bool storing whether or not a tape character is being edited
+      */
+     bool editing_tape_character_ = false;
+     
     /**
      * State storing the state most recently clicked by the user, empty state if 
      * the user has not recently clicked a state
@@ -190,36 +230,38 @@ class TuringMachineSimulatorApp : public ci::app::App {
     /**
      * int storing the x boundary for the menu
      */
-    const int kMenuXBoundary = (int) kWindowSize - (kWindowSize / 5);
+    const int kMenuXBoundary = (int) kHorizontalWindowSize 
+        - (kHorizontalWindowSize / 5);
 
     /**
      * int storing the radius of the states in the app
      */
-    const int kRadiusOfStates = (int) (kWindowSize - kMenuXBoundary) / 4;
+    const int kRadiusOfStates = (int) (kHorizontalWindowSize - kMenuXBoundary) 
+        / 4;
 
     /**
      * int soring the x coordinate of the example states
      */
-    const int kXLocationOfExampleStates = (int) kWindowSize - (kRadiusOfStates 
-        * 2);
+    const int kXLocationOfExampleStates = (int) kHorizontalWindowSize - 
+        (kRadiusOfStates * 2);
 
     /**
      * vec2 storing the coordinates of the center of the example starting state
      */
     const glm::vec2 kLocationOfQ1 = glm::vec2(kXLocationOfExampleStates,
-        (int) kWindowSize / 8);
+        (int) kVerticalWindowSize / 8);
 
     /**
      * vec2 storing the coordinates of the center of the example nth state
      */
     const glm::vec2 kLocationOfQn = glm::vec2(kXLocationOfExampleStates,
-        (int) 3 * (kWindowSize / 8));
+        (int) 3 * (kVerticalWindowSize / 8));
 
     /**
      * vec2 storing the coordinates of the center of the example halting state
      */
     const glm::vec2 kLocationOfQh = glm::vec2(kXLocationOfExampleStates,
-        (int) 5 * (kWindowSize / 8));
+        (int) 5 * (kVerticalWindowSize / 8));
 
     /**
      * State storing the example starting state
@@ -242,12 +284,13 @@ class TuringMachineSimulatorApp : public ci::app::App {
     /**
      * int storing the x boundary for the add arrow box
      */
-    const int kAddArrowBoxXBoundary = (int) kWindowSize - (2 * (kWindowSize / 5));
+    const int kAddArrowBoxXBoundary = (int) kHorizontalWindowSize - (2 
+        * (kHorizontalWindowSize / 5));
     
     /**
      * int storing the y boundary for the add arrow box
      */
-    const int kAddArrowBoxYBoundary = (int) 6 * kWindowSize / 8;
+    const int kAddArrowBoxYBoundary = (int) 6 * (kVerticalWindowSize / 8);
 
     /**
      * size_t storing the index of read input in add_arrow_inputs_
@@ -283,7 +326,7 @@ class TuringMachineSimulatorApp : public ci::app::App {
     /**
      * vec2 storing the lower right corner of the read input box
      */
-    const glm::vec2 kLowerCornerOfReadInput = glm::vec2(kWindowSize,
+    const glm::vec2 kLowerCornerOfReadInput = glm::vec2(kHorizontalWindowSize,
         kAddArrowBoxYBoundary + 35);
     
     /**
@@ -301,7 +344,7 @@ class TuringMachineSimulatorApp : public ci::app::App {
     /**
      * vec2 storing the lower right corner of the write input box
      */
-    const glm::vec2 kLowerCornerOfWriteInput = glm::vec2(kWindowSize,
+    const glm::vec2 kLowerCornerOfWriteInput = glm::vec2(kHorizontalWindowSize,
         kAddArrowBoxYBoundary + 55);
     
     /**
@@ -319,7 +362,7 @@ class TuringMachineSimulatorApp : public ci::app::App {
     /**
      * vec2 storing the lower right corner of the shift input box
      */
-    const glm::vec2 kLowerCornerOfShiftInput = glm::vec2(kWindowSize,
+    const glm::vec2 kLowerCornerOfShiftInput = glm::vec2(kHorizontalWindowSize,
         kAddArrowBoxYBoundary + 80);
     
     /**
@@ -337,7 +380,7 @@ class TuringMachineSimulatorApp : public ci::app::App {
     /**
      * vec2 storing the lower right corner of the move from input box
      */
-    const glm::vec2 kLowerCornerOfMoveFromInput = glm::vec2(kWindowSize, 
+    const glm::vec2 kLowerCornerOfMoveFromInput = glm::vec2(kHorizontalWindowSize, 
         kAddArrowBoxYBoundary + 105);
     
     /**
@@ -355,7 +398,7 @@ class TuringMachineSimulatorApp : public ci::app::App {
     /**
      * vec2 storing the lower right corner of the move to input box
      */
-    const glm::vec2 kLowerCornerOfMoveToInput = glm::vec2(kWindowSize,
+    const glm::vec2 kLowerCornerOfMoveToInput = glm::vec2(kHorizontalWindowSize,
         kAddArrowBoxYBoundary + 130);
     
     /**
@@ -373,7 +416,7 @@ class TuringMachineSimulatorApp : public ci::app::App {
     /**
      * vec2 storing the lower right corner of the submit button
      */
-    const glm::vec2 kLowerCornerOfSubmit = glm::vec2(kWindowSize, 
+    const glm::vec2 kLowerCornerOfSubmit = glm::vec2(kHorizontalWindowSize, 
         kAddArrowBoxYBoundary + 150);
     
     /**
@@ -397,6 +440,18 @@ class TuringMachineSimulatorApp : public ci::app::App {
      */
     const ci::Rectf kClearButton = ci::Rectf(kUpperCornerClearButton,
         kLowerCornerClearButton);
+    
+    /**
+     * vec2 storing the upper corner of the tape
+     */
+    const glm::vec2 kUpperCornerOfTape = glm::vec2(10, 
+        kUpperCornerOfWriteInput.y);
+    
+    /**
+     * vec2 storing the lower corner of the tape
+     */
+    const glm::vec2 kLowerCornerOfTape = glm::vec2(kAddArrowBoxXBoundary - 10, 
+        kLowerCornerOfMoveFromInput.y);
 };
 
 } // namespace turingmachinesimulator
