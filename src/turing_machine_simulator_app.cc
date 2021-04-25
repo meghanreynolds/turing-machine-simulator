@@ -38,6 +38,14 @@ void TuringMachineSimulatorApp::draw() {
   // display the tape
   DrawTape();
   
+  // display reset tape button
+  DrawResetTapeButton();
+  
+  // display stop simulation button if simulation is in progress
+  if (simulation_is_in_progress_) {
+    DrawStopSimulationButton();
+  }
+  
   // display user-defined directions
   // NOTE: this must come before displaying user-defined states so the arrow 
   // goes behind the states
@@ -54,8 +62,32 @@ void TuringMachineSimulatorApp::draw() {
   DisplayErrorMessage();
 }
 
+void TuringMachineSimulatorApp::update() {
+  // only use the update function while the simulation is in-progress
+  if(simulation_is_in_progress_) {
+    ci::app::setFrameRate(1);
+    turing_machine_.Update();
+    tape_ = turing_machine_.GetTape();
+    index_of_character_being_read_ = turing_machine_.GetIndexOfScanner();
+    if (turing_machine_.IsHalted()) {
+      simulation_is_in_progress_ = false;
+      ci::app::setFrameRate(60);
+    }
+  }
+}
+
 void TuringMachineSimulatorApp::mouseDown(ci::app::MouseEvent event) {
   const glm::vec2 kClickLocation = event.getPos();
+  // when simulation is in progress, clicking is not supported unless
+  // clicking the stop simulation button
+  if (simulation_is_in_progress_) {
+    if (kHelperMethods.IsPointInRectangle(kClickLocation, 
+        kStopSimulationButton)) {
+      simulation_is_in_progress_ = false;
+      ci::app::setFrameRate(60);
+    }
+    return;
+  }
   
   // handle clicked box event
   const bool kBoxWasClicked = HandleClickedBox(kClickLocation);
@@ -102,15 +134,16 @@ void TuringMachineSimulatorApp::mouseDown(ci::app::MouseEvent event) {
 }
 
 void TuringMachineSimulatorApp::mouseDrag(ci::app::MouseEvent event) {
-  // if clicked state is empty, there's nothing to drag
-  if (clicked_state_.IsEmpty()) {
+  // if clicked state is empty or simulation is in progress, 
+  // there's nothing to drag
+  if (clicked_state_.IsEmpty() || simulation_is_in_progress_) {
     return;
   }
   // update the clicked state's position to be where the user dragged it
   // cannot do a for-each loop here because we need the index in states_
   for (size_t i = 0; i < states_.size(); i++) {
     const State kCurrentState = states_.at(i);
-    // update the clicked state's position to be where the user dragged it
+    // update the clicked state's position to be where the user dragged itl
     if (kCurrentState.Equals(clicked_state_)) {
       const State kUpdatedState = State(kCurrentState.GetId(),
           kCurrentState.GetStateName(), event.getPos(), kRadiusOfStates);
@@ -122,6 +155,10 @@ void TuringMachineSimulatorApp::mouseDrag(ci::app::MouseEvent event) {
 }
 
 void TuringMachineSimulatorApp::keyDown(ci::app::KeyEvent event) {
+  // if simulation is in progress, keyboard input is not supported
+  if (simulation_is_in_progress_) {
+    return;
+  }
   const int kEventCode = event.getCode();
   // NOTE: shift keys will cause major bugs in this ui if not explicitly handled
   if (kEventCode == ci::app::KeyEvent::KEY_LSHIFT 
@@ -315,6 +352,36 @@ void TuringMachineSimulatorApp::DrawTape() const {
   }
 }
 
+void TuringMachineSimulatorApp::DrawResetTapeButton() const {
+  ci::gl::color(ci::Color("salmon"));
+  ci::gl::drawSolidRect(kResetTapeButton);
+  ci::gl::color(ci::Color("black"));
+  ci::gl::drawStrokedRect(kResetTapeButton);
+  const double kHorizontalCenterOfButton = (kUpperCornerOfResetTapeButton.x
+      + kLowerCornerOfResetTapeButton.x) / 2;
+  const double kVerticalCenterOfButton = (kUpperCornerOfResetTapeButton.y
+      + kLowerCornerOfResetTapeButton.y) / 2;
+  const glm::vec2 kResetTapeButtonLabelCoordinates =
+      glm::vec2(kHorizontalCenterOfButton, kVerticalCenterOfButton);
+  ci::gl::drawStringCentered("Reset Tape", kResetTapeButtonLabelCoordinates,
+      "black");
+}
+
+void TuringMachineSimulatorApp::DrawStopSimulationButton() const {
+  ci::gl::color(ci::Color("salmon"));
+  ci::gl::drawSolidRect(kStopSimulationButton);
+  ci::gl::color(ci::Color("black"));
+  ci::gl::drawStrokedRect(kStopSimulationButton);
+  const double kHorizontalCenterOfButton = (kUpperCornerStopButton.x
+      + kLowerCornerStopButton.x) / 2;
+  const double kVerticalCenterOfButton = (kUpperCornerStopButton.y
+      + kLowerCornerStopButton.y) / 2;
+  const glm::vec2 kStopSimulationButtonLabelCoordinates =
+      glm::vec2(kHorizontalCenterOfButton, kVerticalCenterOfButton);
+  ci::gl::drawStringCentered("STOP!", 
+      kStopSimulationButtonLabelCoordinates, "black");
+}
+
 void TuringMachineSimulatorApp::DisplayErrorMessage() const {
   if (turing_machine_.IsEmpty()) {
     const std::string kTuringMachineError = turing_machine_.GetErrorMessage();
@@ -368,6 +435,8 @@ bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
     directions_ = {};
     states_ = {};
     tape_ = {'-', '-', '-', '-', '-', '-', '-', '-'};
+    index_of_character_being_read_ = 0;
+    simulation_is_in_progress_ = false;
     turing_machine_ = TuringMachine();
     state_id_ = 0;
     add_arrow_inputs_ = {"single char", "single char", "L/R/N", "q5", "qh"};
@@ -380,8 +449,15 @@ bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
     turing_machine_ = TuringMachine(states_, directions_, tape_);
     if (turing_machine_.IsEmpty()) {
       DisplayErrorMessage();
+    } else {
+      simulation_is_in_progress_ = true;
     }
+  } else if (kHelperMethods.IsPointInRectangle(kClickLocation,
+      kResetTapeButton)) {
+    tape_ = {'-', '-', '-', '-', '-', '-', '-', '-'};
+    index_of_character_being_read_ = 0;
   }
+  
   const size_t kIndexOfTapeSquareClicked = 
       kHelperMethods.GetIndexOfSquareOfTapeClicked(kClickLocation, 
       kUpperCornerOfTape, kLowerCornerOfTape);

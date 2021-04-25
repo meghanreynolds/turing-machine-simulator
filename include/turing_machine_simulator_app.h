@@ -29,6 +29,12 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * Turing Machine Simulator App
      */
     void draw() override;
+    
+    /**
+     * This method overrides the update function of a cinder app to update the
+     * turing machine simulation when the simulation is in progress
+     */
+    void update() override;
 
     /**
      * This method overrides the mouseDown function of a cinder app to respond
@@ -89,10 +95,20 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * This method draws the tape on the screen
      */
     void DrawTape() const;
+    
+    /**
+     * This method draws the reset tape button on the screen
+     */
+     void DrawResetTapeButton() const;
      
-     /**
-      * This method displays the turing machine error message
-      */
+   /**
+    * This method draws the stop simulation button on the screen 
+    */
+    void DrawStopSimulationButton() const;
+     
+   /**
+    * This method displays the turing machine error message
+    */
     void DisplayErrorMessage() const;
      
     /**
@@ -182,6 +198,11 @@ class TuringMachineSimulatorApp : public ci::app::App {
     * TuringMachine storing the user defined Turing Machine
     */
     TuringMachine turing_machine_ = TuringMachine();
+    
+    /**
+     * bool that is true if a turing machine is being simulated
+     */
+     bool simulation_is_in_progress_ = false;
 
     /**
      * size_t storing the index of the character the scanner is reading
@@ -476,16 +497,52 @@ class TuringMachineSimulatorApp : public ci::app::App {
          kLowerCornerSimulateButton);
     
     /**
-     * vec2 storing the upper corner of the tape
+     * vec2 storing the upper left corner of the tape
      */
     const glm::vec2 kUpperCornerOfTape = glm::vec2(10, 
         kUpperCornerOfWriteInput.y);
     
     /**
-     * vec2 storing the lower corner of the tape
+     * vec2 storing the lower right corner of the tape
      */
     const glm::vec2 kLowerCornerOfTape = glm::vec2(kAddArrowBoxXBoundary - 10, 
         kLowerCornerOfMoveFromInput.y);
+    
+    /**
+     * vec2 storing the upper left corner of the reset tape button 
+     */
+    const glm::vec2 kUpperCornerOfResetTapeButton = 
+        glm::vec2(kUpperCornerOfTape.x , kUpperCornerOfTape.y - 90);
+    
+    /**
+     * vec2 storing the lower right corner of the reset tape button
+     */
+    const glm::vec2 kLowerCornerOfResetTapeButton = 
+        glm::vec2(kUpperCornerOfTape.x + 80, kUpperCornerOfTape.y - 10);
+    
+    /**
+     * Rectf storing the reset tape button
+     */
+    const ci::Rectf kResetTapeButton = ci::Rectf(kUpperCornerOfResetTapeButton,
+        kLowerCornerOfResetTapeButton);
+    
+    /**
+     * vec2 storing the upper left corner of the stop simulation button
+     */
+    const glm::vec2 kUpperCornerStopButton = glm::vec2(kMenuXBoundary - 90, 
+        kAddArrowBoxYBoundary - 90);
+    
+    /**
+     * vec2 storing the lower right corner of the stop simulation button
+     */
+    const glm::vec2 kLowerCornerStopButton = glm::vec2(kMenuXBoundary - 10, 
+        kAddArrowBoxYBoundary - 10);
+    
+    /**
+     * Rectf storing the stop simulation button
+     */
+    const ci::Rectf kStopSimulationButton = ci::Rectf(kUpperCornerStopButton, 
+        kLowerCornerStopButton);
 };
 
 } // namespace turingmachinesimulator
