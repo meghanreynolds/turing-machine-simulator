@@ -32,7 +32,7 @@ class TuringMachine {
         const std::vector<Direction> &kDirections, 
         const std::vector<char> &kTape);
     
-    State GetStartingState() const;
+    State GetCurrentState() const;
     
     std::vector<State> GetHaltingStates() const;
     
@@ -50,11 +50,26 @@ class TuringMachine {
      */
     bool IsEmpty() const;
     
+    size_t GetIndexOfScanner() const;
+    
+    bool IsHalted() const;
+    
+    /**
+     * This method updates the Turing Machine by following the directions for
+     * the current state of the turing machine
+     */
+    void Update();
+    
   private:
     /**
-     * State storing the starting state of the turing machine
+     * This method executes the given direction
      */
-    State starting_state_ = State();
+     void ExecuteDirection(const Direction &kDirection);
+     
+    /**
+     * State storing the current state of the turing machine
+     */
+    State current_state_ = State();
     
     /**
      * vector of states storing the halting states of the turing machine
@@ -83,6 +98,17 @@ class TuringMachine {
      * string storing the error message of the turing machine
      */
     std::string error_message_ = "";
+    
+    /**
+     * size_ storing the index of the tape that the scanner is reading
+     */
+    size_t index_of_scanner_ = 0;
+    
+    /**
+     * bool storing whether or not the machine is halted (true if halted, false
+     * otherwise)
+     */
+    bool is_halted_ = false;
 };
 
 } // namespace turingmachinesimulator

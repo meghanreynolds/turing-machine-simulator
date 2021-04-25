@@ -75,8 +75,8 @@ The simulation will follow the following conventions and assumptions:
 - [X] Let users clear out individual nodes of the state diagram
 
 **Week 2**
-- [ ] Finish up Week 1
-- [ ] Simulate the Turing Machine that the user has entered
+- [X] Finish up Week 1
+- [X] Simulate the Turing Machine that the user has entered
   - [ ] Move scanner along the tape
   - [ ] Update the symbols on the tape according to the entered rules
 
