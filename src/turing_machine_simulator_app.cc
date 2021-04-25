@@ -32,6 +32,9 @@ void TuringMachineSimulatorApp::draw() {
   // display the clear button
   DrawClearButton();
   
+  //display the simulate button
+  DrawSimulateButton();
+  
   // display the tape
   DrawTape();
   
@@ -46,6 +49,9 @@ void TuringMachineSimulatorApp::draw() {
   for (const State &kState : states_) {
     kState.Display();
   }
+
+  // display the error message
+  DisplayErrorMessage();
 }
 
 void TuringMachineSimulatorApp::mouseDown(ci::app::MouseEvent event) {
@@ -153,8 +159,8 @@ void TuringMachineSimulatorApp::DrawAddArrowMenu() const {
   ci::gl::drawStrokedRect(ci::Rectf(kUpperCorner, kLowerCorner));
   
   // draw menu heading
-  const float kXLocationOfHeading = ((kHorizontalWindowSize - kAddArrowBoxXBoundary) / 2) 
-      + kAddArrowBoxXBoundary;
+  const float kXLocationOfHeading = ((kHorizontalWindowSize 
+      - kAddArrowBoxXBoundary) / 2) + kAddArrowBoxXBoundary;
   const glm::vec2 kLocationOfHeading = glm::vec2(kXLocationOfHeading, 
       kAddArrowBoxYBoundary + 5);
   ci::gl::drawStringCentered("ADD ARROW", kLocationOfHeading, 
@@ -224,8 +230,27 @@ void TuringMachineSimulatorApp::DrawClearButton() const {
   ci::gl::drawSolidRect(kClearButton);
   ci::gl::color(ci::Color("black"));
   ci::gl::drawStrokedRect(kClearButton);
-  const glm::vec2 kClearButtonLabelCoordinates = glm::vec2(50, 50);
+  const double kHorizontalCenterOfButton = (kUpperCornerClearButton.x
+                                            + kLowerCornerClearButton.x) / 2;
+  const double kVerticalCenterOfButton = (kUpperCornerClearButton.y
+                                          + kLowerCornerClearButton.y) / 2;
+  const glm::vec2 kClearButtonLabelCoordinates = glm::vec2(kHorizontalCenterOfButton, kVerticalCenterOfButton);
   ci::gl::drawStringCentered("CLEAR", kClearButtonLabelCoordinates, 
+      "black");
+}
+
+void TuringMachineSimulatorApp::DrawSimulateButton() const {
+  ci::gl::color(ci::Color("palegreen"));
+  ci::gl::drawSolidRect(kSimulateButton);
+  ci::gl::color(ci::Color("black"));
+  ci::gl::drawStrokedRect(kSimulateButton);
+  const double kHorizontalCenterOfButton = (kUpperCornerSimulateButton.x 
+      + kLowerCornerSimulateButton.x) / 2;
+  const double kVerticalCenterOfButton = (kUpperCornerSimulateButton.y
+                                  + kLowerCornerSimulateButton.y) / 2;
+  const glm::vec2 kSimulateButtonLabelCoordinates = 
+      glm::vec2(kHorizontalCenterOfButton, kVerticalCenterOfButton);
+  ci::gl::drawStringCentered("SIMULATE!", kSimulateButtonLabelCoordinates, 
       "black");
 }
 
@@ -290,6 +315,20 @@ void TuringMachineSimulatorApp::DrawTape() const {
   }
 }
 
+void TuringMachineSimulatorApp::DisplayErrorMessage() const {
+  if (turing_machine_.IsEmpty()) {
+    const std::string kTuringMachineError = turing_machine_.GetErrorMessage();
+    if (kTuringMachineError != "") {
+      const std::string kErrorMessage = "ERROR: " 
+          + turing_machine_.GetErrorMessage();
+      const glm::vec2 kPositionOfErrorMessage = glm::vec2(kMenuXBoundary / 2,
+          10);
+      ci::gl::drawStringCentered(kErrorMessage, kPositionOfErrorMessage, 
+          "firebrick");
+    }
+  }
+}
+
 bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
     &kClickLocation) {
   const size_t kIndexOfNoTextToEdit = 5;
@@ -329,6 +368,7 @@ bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
     directions_ = {};
     states_ = {};
     tape_ = {'-', '-', '-', '-', '-', '-', '-', '-'};
+    turing_machine_ = TuringMachine();
     state_id_ = 0;
     add_arrow_inputs_ = {"single char", "single char", "L/R/N", "q5", "qh"};
     index_of_add_arrow_text_to_edit = 5;
@@ -336,6 +376,11 @@ bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
     state_being_modified_ = State();
     index_of_character_being_edited_ = 8;
     editing_tape_character_ = false;
+  } else if (kHelperMethods.IsPointInRectangle(kClickLocation, kSimulateButton)) {
+    turing_machine_ = TuringMachine(states_, directions_, tape_);
+    if (turing_machine_.IsEmpty()) {
+      DisplayErrorMessage();
+    }
   }
   const size_t kIndexOfTapeSquareClicked = 
       kHelperMethods.GetIndexOfSquareOfTapeClicked(kClickLocation, 

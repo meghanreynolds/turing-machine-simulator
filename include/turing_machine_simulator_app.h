@@ -9,6 +9,7 @@
 #include "cinder/gl/gl.h"
 #include "direction.h"
 #include "state.h"
+#include "turing_machine.h"
 #include "turing_machine_simulator_helper.h"
 
 namespace turingmachinesimulator {
@@ -70,6 +71,11 @@ class TuringMachineSimulatorApp : public ci::app::App {
     void DrawClearButton() const;
     
     /**
+     * This method draws the simulate button to the screen
+     */
+     void DrawSimulateButton() const;
+    
+    /**
      * This method draws an arrow on the screen for each user-defined direction
      * 
      * NOTE: this method is inside of this class to all users to update
@@ -82,7 +88,12 @@ class TuringMachineSimulatorApp : public ci::app::App {
     /**
      * This method draws the tape on the screen
      */
-     void DrawTape() const;
+    void DrawTape() const;
+     
+     /**
+      * This method displays the turing machine error message
+      */
+    void DisplayErrorMessage() const;
      
     /**
      * This method takes in the location of the user's click and handles the 
@@ -165,7 +176,12 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * vector storing the characters on the tape (by default starts with 8
      * blank characters)
      */
-     std::vector<char> tape_ = {'-', '-', '-', '-', '-', '-', '-', '-'};
+    std::vector<char> tape_ = {'-', '-', '-', '-', '-', '-', '-', '-'};
+     
+   /**
+    * TuringMachine storing the user defined Turing Machine
+    */
+    TuringMachine turing_machine_ = TuringMachine();
 
     /**
      * size_t storing the index of the character the scanner is reading
@@ -440,6 +456,24 @@ class TuringMachineSimulatorApp : public ci::app::App {
      */
     const ci::Rectf kClearButton = ci::Rectf(kUpperCornerClearButton,
         kLowerCornerClearButton);
+    
+    /**
+     * vec2 storing the upper left corner of the simulate button
+     */
+    const glm::vec2 kUpperCornerSimulateButton = glm::vec2(kMenuXBoundary 
+        - 90, 10);
+     
+     /**
+      * vec2 storing the lower right corner of the simulate button
+      */
+    const glm::vec2 kLowerCornerSimulateButton = glm::vec2(kMenuXBoundary
+        - 10, 90);
+    
+    /**
+     * vec2 storing the simulate button
+     */
+     const ci::Rectf kSimulateButton = ci::Rectf(kUpperCornerSimulateButton, 
+         kLowerCornerSimulateButton);
     
     /**
      * vec2 storing the upper corner of the tape

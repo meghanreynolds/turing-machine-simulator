@@ -29,6 +29,10 @@ glm::vec2 State::GetStateLocation() const {
   return state_location_;
 }
 
+bool State::operator<(const State &kState) const {
+  return id_ < kState.GetId();
+}
+
 bool State::IsEmpty() const {
   return is_empty_;
 }

@@ -41,6 +41,17 @@ class State {
     glm::vec2 GetStateLocation() const;
     
     /**
+     * This method overrides the less than operator to compare states by id's
+     * NOTE: This method is only overridden to allow for states to serve
+     * as map keys
+     * 
+     * @param kState a State to compare with this state
+     * @return a bool that is true if this state's id is less than the id of the 
+     *     given state
+     */
+    bool operator<(const State &kState) const;
+    
+    /**
      * This method returns true if the state is empty (initialized via default
      * constructor) and false otherwise
      * 

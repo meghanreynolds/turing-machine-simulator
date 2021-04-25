@@ -2,6 +2,30 @@
 
 namespace turingmachinesimulator {
 
+Direction::Direction(char read, char write, char move, 
+    const State &kStateToMoveFrom, const State &kStateToMoveTo) {
+  read_ = read;
+  write_ = write;
+  char kMoveChar = std::tolower(move);
+  if (kMoveChar == 'l' || kMoveChar == 'r' || kMoveChar == 'n') {
+    scanner_movement_ = kMoveChar;
+  } else {
+    // don't create non-empty direction object if scanner movement direction is
+    // wrong (not l, r, or n)
+    return;
+  }
+  if (kStateToMoveFrom.IsEmpty() || kStateToMoveTo.IsEmpty() 
+      || kStateToMoveFrom.GetStateName() == "qh") {
+    // don't create non-empty direction object state to move from/to is empty or
+    // if state to move from is the halting state
+    return;
+  }
+  state_to_move_to_ = kStateToMoveTo;
+  state_to_move_from_ = kStateToMoveFrom;
+  is_empty_ = false;
+  return;
+}
+
 Direction::Direction(const std::vector<std::string> &kData, 
     const std::vector<State> &kPossibleStates) {
   const size_t kExpectedNumStringInputs = 5;
@@ -101,6 +125,27 @@ State Direction::GetStateToMoveTo() const {
   return state_to_move_to_;
 }
 
+bool Direction::operator==(const Direction &kDirection) const {
+  if (read_ == kDirection.GetRead()) {
+    return true;
+  }
+  return false;
+}
+
+bool Direction::Equals(const Direction &kDirection) const {
+  if (kDirection.IsEmpty()) {
+    // if both directions are empty then they're equal, otherwise they're not
+    return is_empty_;
+  }
+  if (read_ == kDirection.GetRead() && write_ == kDirection.GetWrite() 
+      && scanner_movement_ == kDirection.GetScannerMovement() 
+      && state_to_move_from_.Equals(kDirection.GetStateToMoveFrom()) 
+      && state_to_move_to_.Equals(kDirection.GetStateToMoveTo())) {
+    return true;
+  }
+  return false;
+}
+
 std::string Direction::ToString() const {
   std::stringstream direction_as_string;
   direction_as_string << read_ << ", " << write_ << ", " 
@@ -109,4 +154,3 @@ std::string Direction::ToString() const {
 }
 
 } // namespace turingmachinesimulator
-

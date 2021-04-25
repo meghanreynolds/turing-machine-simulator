@@ -9,6 +9,7 @@ using namespace turingmachinesimulator;
  * Correctly Marks Objects As Empty/Non-empty
  * Correctly Checks If A Point Is Within a Given Radius The State
  * Correctly Checks For Equality With Other States
+ * Less Than Operator Functions Correctly
  */
 TEST_CASE("Test Correctly Marks Objects As Empty/Nonempty") {
   SECTION("Test Object Made With Default Constructor", "[initialization]"
@@ -91,5 +92,31 @@ TEST_CASE("Test Correctly Evaluates Equality With Other States") {
     const State kState2 = State(1, "q1",
         glm::vec2(1, 1), 5);
     REQUIRE(kState1.Equals(kState2));
+  }
+}
+
+TEST_CASE("Test Less Than Operator") {
+  SECTION("Test Id Greater Than Other Id", "[less than]") {
+    const State kStateToCompare = State(1, "q1", 
+        glm::vec2(1, 1), 5);
+    const State kStateWithSmallerId = State(0, "q0", 
+        glm::vec2(1, 1), 5);
+    REQUIRE((kStateToCompare < kStateWithSmallerId) == false);
+  }
+  
+  SECTION("Test Equal Id's", "[less than]") {
+    const State kStateToCompare = State(1, "q1",
+        glm::vec2(1, 1), 5);
+    const State kStateWithSmallerId = State(1, "q0",
+        glm::vec2(1, 1), 5);
+    REQUIRE((kStateToCompare < kStateWithSmallerId) == false);
+  }
+  
+  SECTION("Test Id Less Than Other Id", "[less than]") {
+    const State kStateToCompare = State(0, "q0",
+        glm::vec2(1, 1), 5);
+    const State kStateWithSmallerId = State(1, "q1",
+        glm::vec2(1, 1), 5);
+    REQUIRE(kStateToCompare < kStateWithSmallerId);
   }
 }
