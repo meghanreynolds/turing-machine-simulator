@@ -185,11 +185,11 @@ TEST_CASE("Test Correctly Calculates Directional Arrow") {
     const std::tuple<glm::vec2, glm::vec2, glm::vec2>  kArrowPoints =
         TuringMachineSimulatorHelper::GetArrow(kStartingPoint, kEndingPoint);
 
-    REQUIRE(std::get<0>(kArrowPoints) == glm::vec2(19.12945251, 24.08082062));
-    REQUIRE(std::get<1>(kArrowPoints) == glm::vec2(10, 20));
+    REQUIRE(std::get<0>(kArrowPoints) == glm::vec2(19.12945251, 19.08082062));
+    REQUIRE(std::get<1>(kArrowPoints) == glm::vec2(10, 15));
     const glm::vec2 kPointThree = std::get<2>(kArrowPoints);
     REQUIRE(kPointThree.x == Approx(.8705474919));
-    REQUIRE(kPointThree.y == Approx(24.08082062));
+    REQUIRE(kPointThree.y == Approx(19.08082062));
   }
 
   SECTION("Test Starting And Ending Point Have Same Y Value", "[arrow]") {
@@ -198,9 +198,9 @@ TEST_CASE("Test Correctly Calculates Directional Arrow") {
     const std::tuple<glm::vec2, glm::vec2, glm::vec2>  kArrowPoints =
         TuringMachineSimulatorHelper::GetArrow(kStartingPoint, kEndingPoint);
 
-    REQUIRE(std::get<0>(kArrowPoints) == glm::vec2(1.919179382, 19.12945251));
-    REQUIRE(std::get<1>(kArrowPoints) == glm::vec2(6, 10));
-    REQUIRE(std::get<2>(kArrowPoints) == glm::vec2(1.919179382, .8705474927));
+    REQUIRE(std::get<0>(kArrowPoints) == glm::vec2(3.919179382, 19.12945251));
+    REQUIRE(std::get<1>(kArrowPoints) == glm::vec2(8, 10));
+    REQUIRE(std::get<2>(kArrowPoints) == glm::vec2(3.919179382, .8705474927));
   }
 
   SECTION("Test Starting And Ending Point Have Negative Slope", "[arrow]") {
@@ -209,11 +209,11 @@ TEST_CASE("Test Correctly Calculates Directional Arrow") {
     const std::tuple<glm::vec2, glm::vec2, glm::vec2>  kArrowPoints =
         TuringMachineSimulatorHelper::GetArrow(kStartingPoint, kEndingPoint);
 
-    REQUIRE(std::get<0>(kArrowPoints) == glm::vec2(10.57963628, 23.88970931));
-    REQUIRE(std::get<1>(kArrowPoints) == glm::vec2(6, 15));
+    REQUIRE(std::get<0>(kArrowPoints) == glm::vec2(12.57963628, 21.38970931));
+    REQUIRE(std::get<1>(kArrowPoints) == glm::vec2(8, 12.5));
     const glm::vec2 kPointThree = std::get<2>(kArrowPoints);
-    REQUIRE(kPointThree.x == Approx(-3.67817314));
-    REQUIRE(kPointThree.y == Approx(12.483461777));
+    REQUIRE(kPointThree.x == Approx(-1.67817314));
+    REQUIRE(kPointThree.y == Approx(9.98346177));
   }
 
   SECTION("Test Starting And Ending Point Have Positive Slope", "[arrow]") {
@@ -223,11 +223,11 @@ TEST_CASE("Test Correctly Calculates Directional Arrow") {
         TuringMachineSimulatorHelper::GetArrow(kStartingPoint, kEndingPoint);
 
     const glm::vec2 kPointOne = std::get<0>(kArrowPoints);
-    REQUIRE(kPointOne.x == Approx(5.048572098));
-    REQUIRE(kPointOne.y == Approx(24.01558001));
-    REQUIRE(std::get<1>(kArrowPoints) == glm::vec2(15, 25));
+    REQUIRE(kPointOne.x == Approx(7.548572098));
+    REQUIRE(kPointOne.y == Approx(31.51558001));
+    REQUIRE(std::get<1>(kArrowPoints) == glm::vec2(17.5, 32.5));
     const glm::vec2 kPointThree = std::get<2>(kArrowPoints);
-    REQUIRE(kPointThree.x == Approx(22.37049033));
-    REQUIRE(kPointThree.y == Approx(18.24160727));
+    REQUIRE(kPointThree.x == Approx(24.87049033));
+    REQUIRE(kPointThree.y == Approx(25.74160727));
   }
 }

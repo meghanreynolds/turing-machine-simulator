@@ -52,6 +52,29 @@ class TuringMachine {
      * @return a bool that is true if the turing machine is empty
      */
     bool IsEmpty() const;
+
+    /**
+     * This method returns the current configuration of the Turing Machine 
+     * formatted for the console
+     * For example, if the tape reads 0-10 and the current state is q1 and the
+     * scanner is reading the '-', the configuration would be: ;0q1-10
+     * 
+     * @return the current configuration of the Turing Machine formatted for
+     *     the console
+     */
+    std::string GetConfigurationForConsole() const;
+
+    /**
+     * This method returns the current configuration of the Turing Machine
+     * formatted for a markdown file
+     * For example, if the tape reads 0-10 and the current state is q1 and the
+     * scanner is reading the '-', the configuration would be: 
+     * ;0q<sub>1</sub>-10
+     * 
+     * @return the current configuration of the Turing Machine formatted for 
+     *     a markdown file
+     */
+    std::string GetConfigurationForMarkdown() const;
     
    /**
     * This method updates the Turing Machine by following the directions for the 

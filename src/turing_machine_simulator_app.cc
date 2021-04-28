@@ -70,9 +70,21 @@ void TuringMachineSimulatorApp::draw() {
 void TuringMachineSimulatorApp::update() {
   // only use the update function while the simulation is in-progress
   if(simulation_is_in_progress_) {
-    // significantly reduced frame rate to allow users to really see how the
+    // significantly reduce frame rate to allow users to really see how the
     // scanner is moving
     ci::app::setFrameRate(1);
+    
+    // add the current turing machine configuration to the console output or
+    // the markdown file, depending on whether the markdown file exists or not
+    std::ofstream configuration_file = 
+        std::ofstream(kPathToCompleteConfigurationFile, std::ios::app);
+    if (!configuration_file.is_open()) {
+      std::cout << turing_machine_.GetConfigurationForConsole();
+    } else {
+      configuration_file << turing_machine_.GetConfigurationForMarkdown();
+    }
+    
+    // update the turing machine
     turing_machine_.Update();
     tape_ = turing_machine_.GetTape();
     index_of_character_being_read_ = turing_machine_.GetIndexOfScanner();
@@ -266,7 +278,18 @@ bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
     if (turing_machine_.IsEmpty()) {
       DisplayErrorMessage();
     } else {
+      num_simulations_run_ += 1;
       simulation_is_in_progress_ = true;
+      // if complete configurations are being sourced to a markdown file,
+      // label this complete configuration with a heading indicating which
+      // number simulation this is
+      std::ofstream configuration_file =
+          std::ofstream(kPathToCompleteConfigurationFile, std::ios::app);
+      if (configuration_file.is_open()) {
+        // NOTE: "##" is the markdown tag for a secondary heading
+        configuration_file << "## Simulation " << num_simulations_run_ 
+            << " Complete Configuration:  ##\n";
+      }
     }
 
   } else if (turingmachinesimulator::TuringMachineSimulatorHelper::
@@ -302,7 +325,7 @@ bool TuringMachineSimulatorApp::HandleStateCreation(const glm::vec2
       kRadiusOfStates)) {
     const std::string kStartingStateName = "q1";
     new_state = State(state_id_, kStartingStateName, click_location,
-                      kRadiusOfStates);
+        kRadiusOfStates);
     new_state_was_created = true;
   }
 
@@ -471,6 +494,19 @@ void TuringMachineSimulatorApp::EditAddArrowInputBox(const ci::app::KeyEvent
 }
 
 void TuringMachineSimulatorApp::StopSimulation() {
+  // add the final turing machine configuration to the console output or
+  // the markdown file, depending on whether the markdown file exists or not
+  std::ofstream configuration_file =
+      std::ofstream(kPathToCompleteConfigurationFile, std::ios::app);
+  if (!configuration_file.is_open()) {
+    std::cout << turing_machine_.GetConfigurationForConsole() << std::endl;
+  } else {
+    // NOTE: the 2 spaces are necessary to start a newline for the next complete
+    // configuration in the markdown file
+    configuration_file << turing_machine_.GetConfigurationForMarkdown() << "  " 
+        << '\n';
+  }
+  
   simulation_is_in_progress_ = false;
   // resume normal frame rate from reduced frame rate so graphics aren't slow
   ci::app::setFrameRate(60);

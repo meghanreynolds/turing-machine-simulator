@@ -45,7 +45,7 @@ Complete configurations (or instantaneous descriptions) can also be used to repr
 the tape on the machine represented in the Figma Rendering read "0", the complete configuration would be:  
 ;q<sub>1</sub>0;1q<sub>2</sub>0;q<sub>1</sub>11;q<sub>3</sub>011;q<sub>2</sub>0111;q<sub>1</sub>01111;1q<sub>2</sub>1111;
 11q<sub>2</sub>111;111q<sub>2</sub>11;1111q<sub>2</sub>1;11111q<sub>2</sub>0;1111q<sub>1</sub>11;111q<sub>3</sub>111;
-11q<sub>h</sub>1111;
+11q<sub>h</sub>1111
 
 The notation that will be used in this simulation is as follows:
   - **q<sub>1</sub>:** the starting state  
@@ -82,7 +82,7 @@ The simulation will follow the following conventions and assumptions:
 
 **Week 3**
 - [X] Finish up Week 2
-- [ ] Return the Complete Configuration of the Turing Machine for the given tape
+- [X] Return the Complete Configuration of the Turing Machine for the given tape
 
 **Stretch Goals**
 - [ ] Animate the state diagram as the simulation is running (Highlight current state and raise arrows as their instructions 

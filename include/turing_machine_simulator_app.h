@@ -159,12 +159,19 @@ class TuringMachineSimulatorApp : public ci::app::App {
     /**
      * int storing the horizontal window size, must be at least 600 
      */
-    const int kHorizontalWindowSize = 1000;
+    const int kHorizontalWindowSize = 1200;
     
     /**
      * int storing the vertical window size, must be at least 600 
      */
     const int kVerticalWindowSize = 800;
+    
+    /**
+     * string storing the path the file storing the complete configurations 
+     * produced by the simulation
+     */
+     const std::string kPathToCompleteConfigurationFile = 
+        "complete-configuration/complete_configuration.md";
 
     /**
      * vector storing all of the user-defined states
@@ -192,6 +199,12 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * after the creation of each new state)
      */
     int state_id_ = 0;
+    
+    /**
+     * int storing the number of simulations that have been run (regardless of
+     * clears)
+     */
+     int num_simulations_run_ = 0;
     
     /**
      * bool that is true if a turing machine is being simulated

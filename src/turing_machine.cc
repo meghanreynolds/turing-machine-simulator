@@ -90,6 +90,39 @@ bool TuringMachine::IsEmpty() const {
   return is_empty_;
 }
 
+std::string TuringMachine::GetConfigurationForConsole() const {
+  std::stringstream configuration_stringstream;
+  configuration_stringstream << ';';
+  // cannot use for-each loop here since the index is necessary
+  for (size_t i = 0; i < tape_.size(); i++) {
+    if (i == index_of_scanner_) {
+      configuration_stringstream << current_state_.GetStateName();
+    }
+    configuration_stringstream << tape_.at(i);
+  }
+  return configuration_stringstream.str();
+}
+
+std::string TuringMachine::GetConfigurationForMarkdown() const {
+  std::stringstream configuration_stringstream;
+  configuration_stringstream << ';';
+  // cannot use for-each loop here since index is necessary
+  for (size_t i = 0; i < tape_.size(); i++) {
+    if (i == index_of_scanner_) {
+      // NOTE: 'q' always precedes the name of the state; we only want the name 
+      // of the state in the subscript
+      configuration_stringstream << 'q';
+      const std::string kStateName = current_state_.GetStateName();
+      const std::string kStateNameWithoutQ = kStateName.substr(1, 
+          kStateName.size());
+      // NOTE: <sub> is the markdown subscript tag
+      configuration_stringstream << "<sub>" << kStateNameWithoutQ << "</sub>";
+    }
+    configuration_stringstream << tape_.at(i);
+  }
+  return configuration_stringstream.str();
+}
+
 void TuringMachine::Update() {
   std::vector<Direction> possible_directions;
   try {

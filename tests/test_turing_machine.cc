@@ -8,6 +8,8 @@ using namespace turingmachinesimulator;
  * Partitions testing as follows:
  * Constructor Properly Creates Turing Machine 
  * Turing Machine Correctly Updates
+ * Configuration Is Produced Correctly For The Console
+ * Configuration Is Produced Correctly For Markdown Files
  */
 TEST_CASE("Test Turing Machine Creation") {
   const State kStartingState = State(1, "q1", 
@@ -404,5 +406,167 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
     REQUIRE(turing_machine.GetTape() == expected_tape);
     REQUIRE(turing_machine.GetIndexOfScanner() == 3);
     REQUIRE(turing_machine.GetCurrentState().Equals(kHaltingState));
+  }
+}
+
+TEST_CASE("Test Configuration Output For Console") {
+  const State kStartingState = State(1, "q1",
+      glm::vec2(1, 1), 5);
+  const State kStateTwo = State(2, "q2",
+      glm::vec2(0, 0), 6);
+  const State kHaltingState = State(5, "qh",
+      glm::vec2(5, 6), 3);
+  const std::vector<State> kStates = {kStartingState, kStateTwo, kHaltingState};
+  const Direction kDirectionOne = Direction('0', '1', 'l',
+      kStartingState, kStateTwo);
+  const Direction kDirectionTwo = Direction('1', '1', 'r',
+      kStartingState, kStartingState);
+  const Direction kDirectionThree = Direction('-', '1', 'r',
+      kStartingState, kHaltingState);
+  const Direction kDirectionFour= Direction('-', '1', 'n',
+      kStateTwo, kStartingState);
+  const std::vector<Direction> kDirections = {kDirectionOne, kDirectionTwo,
+                                              kDirectionThree, kDirectionFour};
+  const std::vector<char> kTape = {'0', '-'};
+  TuringMachine turing_machine = TuringMachine(kStates, kDirections,
+      kTape);
+  
+  SECTION("Test Initial Position", "[console configuration]") {
+    const std::string kExpectedConfiguration = ";q10-";
+    REQUIRE(turing_machine.GetConfigurationForConsole() 
+        == kExpectedConfiguration);
+  }
+  
+  SECTION("Test Configuration Updates Correctly After Front Tape Expansions", 
+      "[console configuration]") {
+    turing_machine.Update();
+    const std::string kExpectedConfiguration = ";q2-1-";
+    REQUIRE(turing_machine.GetConfigurationForConsole() 
+        == kExpectedConfiguration);
+  }
+  
+  SECTION("Test Configuration Updates Correctly With The Machine", 
+      "[console configuration]") {
+    // test second update
+    turing_machine.Update();
+    turing_machine.Update();
+    std::string expected_configuration = ";q111-";
+    REQUIRE(turing_machine.GetConfigurationForConsole() 
+        == expected_configuration);
+    
+    // test third update
+    turing_machine.Update();
+    expected_configuration = ";1q11-";
+    REQUIRE(turing_machine.GetConfigurationForConsole() 
+        == expected_configuration);
+    
+    // test fourth update
+    turing_machine.Update();
+    expected_configuration = ";11q1-";
+    REQUIRE(turing_machine.GetConfigurationForConsole() 
+        == expected_configuration);
+  }
+  
+  SECTION("Test Configuration Updates Correctly After End Tape Expansions",
+      "[console configuration]") {
+    // test fifth update (where end tape expansion occurs)
+    turing_machine.Update();
+    turing_machine.Update();
+    turing_machine.Update();
+    turing_machine.Update();
+    turing_machine.Update();
+    const std::string kExpectedConfiguration = ";111qh-";
+    REQUIRE(turing_machine.GetConfigurationForConsole() 
+        == kExpectedConfiguration);
+  }
+}
+
+TEST_CASE("Test Configuration Output For Markdown Files") {
+  const State kStartingState = State(1, "q1",
+      glm::vec2(1, 1), 5);
+  const State kStateTwo = State(2, "q2",
+      glm::vec2(0, 0), 6);
+  const State kHaltingState = State(5, "qh",
+      glm::vec2(5, 6), 3);
+  const std::vector<State> kStates = {kStartingState, kStateTwo, kHaltingState};
+  const Direction kDirectionOne = Direction('0', '1', 'l',
+      kStartingState, kStateTwo);
+  const Direction kDirectionTwo = Direction('1', '1', 'r',
+      kStartingState, kStartingState);
+  const Direction kDirectionThree = Direction('-', '1', 'r',
+      kStartingState, kHaltingState);
+  const Direction kDirectionFour= Direction('-', '1', 'n',
+      kStateTwo, kStartingState);
+  const std::vector<Direction> kDirections = {kDirectionOne, kDirectionTwo,
+                                              kDirectionThree, kDirectionFour};
+  const std::vector<char> kTape = {'0', '-'};
+  TuringMachine turing_machine = TuringMachine(kStates, kDirections,
+      kTape);
+
+  SECTION("Test Initial Position", "[markdown configuration]") {
+    const std::string kExpectedConfiguration = ";q<sub>1</sub>0-";
+    REQUIRE(turing_machine.GetConfigurationForMarkdown()
+        == kExpectedConfiguration);
+  }
+
+  SECTION("Test Configuration Updates Correctly After Front Tape Expansions",
+      "[markdown configuration]") {
+    turing_machine.Update();
+    const std::string kExpectedConfiguration = ";q<sub>2</sub>-1-";
+    REQUIRE(turing_machine.GetConfigurationForMarkdown()
+        == kExpectedConfiguration);
+  }
+
+  SECTION("Test Configuration Updates Correctly With The Machine",
+      "[markdown configuration]") {
+    // test second update
+    turing_machine.Update();
+    turing_machine.Update();
+    std::string expected_configuration = ";q<sub>1</sub>11-";
+    REQUIRE(turing_machine.GetConfigurationForMarkdown()
+        == expected_configuration);
+
+    // test third update
+    turing_machine.Update();
+    expected_configuration = ";1q<sub>1</sub>1-";
+    REQUIRE(turing_machine.GetConfigurationForMarkdown()
+        == expected_configuration);
+
+    // test fourth update
+    turing_machine.Update();
+    expected_configuration = ";11q<sub>1</sub>-";
+    REQUIRE(turing_machine.GetConfigurationForMarkdown()
+        == expected_configuration);
+  }
+
+  SECTION("Test Configuration Updates Correctly After End Tape Expansions",
+      "[markdown configuration]") {
+    // test fifth update (where end tape expansion occurs)
+    turing_machine.Update();
+    turing_machine.Update();
+    turing_machine.Update();
+    turing_machine.Update();
+    turing_machine.Update();
+    const std::string kExpectedConfiguration = ";111q<sub>h</sub>-";
+    REQUIRE(turing_machine.GetConfigurationForMarkdown()
+        == kExpectedConfiguration);
+  }
+  
+  SECTION("Test Configuration Where State Name Is Just 'q'", 
+      "[markdown configuration]") {
+    const State kStateWithoutName = State(17, "q", 
+        glm::vec2(1, 1), 5);
+    const Direction kDirectionFive = Direction('0', '1', 'l',
+        kStartingState, kStateWithoutName);
+    const std::vector<State> kNewStates = {kStartingState, kStateWithoutName};
+    const std::vector<Direction> kNewDirections = {kDirectionFive};
+    const std::vector<char> kNewTape = {'0'};
+    TuringMachine new_turing_machine = TuringMachine(kNewStates, kNewDirections, 
+        kNewTape);
+    
+    new_turing_machine.Update();
+    const std::string kExpectedConfiguration = ";q<sub></sub>-1";
+    REQUIRE(new_turing_machine.GetConfigurationForMarkdown() 
+        == kExpectedConfiguration);
   }
 }

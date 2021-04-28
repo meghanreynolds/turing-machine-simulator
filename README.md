@@ -47,7 +47,10 @@ rules entered in via the state diagram, moving the scanner along the tape as a T
     ```
     git clone https://github.com/uiuc-sp21-cs126/final-project-meghanreynolds.git
     ```
-
+4. Set the run configuration of turing-machine-simulator to have the following working directory: 
+    ```
+       $ProjectFileDir$
+    ```
 
 ## Notation, Assumptions, and Conventions ##
 The notation that will be used in this simulation is as follows:
