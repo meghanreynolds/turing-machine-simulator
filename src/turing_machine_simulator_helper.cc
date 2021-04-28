@@ -71,13 +71,15 @@ size_t TuringMachineSimulatorHelper::GetIndexOfSquareOfTapeClicked(
 
 std::tuple<glm::vec2, glm::vec2, glm::vec2> TuringMachineSimulatorHelper
     ::GetArrow(const glm::vec2 &point_a, const glm::vec2 &point_b) {
-  const double kHorizontalMidpoint = (point_a.x + point_b.x) / 2;
-  const double kVerticalMidpoint = (point_a.y + point_b.y) / 2;
-  const glm::vec2 kTipOfArrow = glm::vec2(kHorizontalMidpoint, 
-      kVerticalMidpoint);
+  // the tip of the arrow is located at 3/4 of the line between the 2 points
+  const double kHorizontalPoint = (point_a.x + (3 * point_b.x)) / 4;
+  const double kVerticalPoint = (point_a.y + (3 * point_b.y)) / 4;
+  const glm::vec2 kTipOfArrow = glm::vec2(kHorizontalPoint, 
+      kVerticalPoint);
   
   // Lines 81-97 adapted from:
   // http://kapo-cpp.blogspot.com/2008/10/drawing-arrows-with-cairo.html
+  // note: 10 and 20 were found by experimenting for best visual experience
   const double kArrowLineLength = 10;
   const double kArrowInternalAngle = 20;
   const double kArrowAngle = std::atan2(point_b.y - point_a.y, 
