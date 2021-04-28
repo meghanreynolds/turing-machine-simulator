@@ -30,20 +30,24 @@ void TuringMachineSimulatorApp::draw() {
   DrawAddArrowMenu();
   
   // display the clear button
-  DrawClearButton();
+  DrawButton(kClearButton, "CLEAR", 
+      ci::Color("salmon"));
   
   //display the simulate button
-  DrawSimulateButton();
+  DrawButton(kSimulateButton, "SIMULATE!",
+      ci::Color("palegreen"));
   
   // display the tape
   DrawTape();
   
   // display reset tape button
-  DrawResetTapeButton();
+  DrawButton(kResetTapeButton, "Reset Tape",
+      ci::Color("salmon"));
   
   // display stop simulation button if simulation is in progress
   if (simulation_is_in_progress_) {
-    DrawStopSimulationButton();
+    DrawButton(kStopSimulationButton, "STOP!",
+        ci::Color("salmon"));
   }
   
   // display user-defined directions
@@ -52,39 +56,41 @@ void TuringMachineSimulatorApp::draw() {
   for (const Direction &kDirection : directions_) {
     DrawArrow(kDirection);
   }
-  
+
   // display user-defined states
   for (const State &kState : states_) {
     kState.Display();
   }
 
   // display the error message
+  // NOTE: This is displayed last so that nothing on the screen covers it up
   DisplayErrorMessage();
 }
 
 void TuringMachineSimulatorApp::update() {
   // only use the update function while the simulation is in-progress
   if(simulation_is_in_progress_) {
+    // significantly reduced frame rate to allow users to really see how the
+    // scanner is moving
     ci::app::setFrameRate(1);
     turing_machine_.Update();
     tape_ = turing_machine_.GetTape();
     index_of_character_being_read_ = turing_machine_.GetIndexOfScanner();
     if (turing_machine_.IsHalted()) {
-      simulation_is_in_progress_ = false;
-      ci::app::setFrameRate(60);
+      StopSimulation();
     }
   }
 }
 
 void TuringMachineSimulatorApp::mouseDown(ci::app::MouseEvent event) {
   const glm::vec2 kClickLocation = event.getPos();
+  
   // when simulation is in progress, clicking is not supported unless
   // clicking the stop simulation button
   if (simulation_is_in_progress_) {
-    if (kHelperMethods.IsPointInRectangle(kClickLocation, 
-        kStopSimulationButton)) {
-      simulation_is_in_progress_ = false;
-      ci::app::setFrameRate(60);
+    if (turingmachinesimulator::TuringMachineSimulatorHelper::IsPointInRectangle
+        (kClickLocation, kStopSimulationButton)) {
+      StopSimulation();
     }
     return;
   }
@@ -98,7 +104,7 @@ void TuringMachineSimulatorApp::mouseDown(ci::app::MouseEvent event) {
   
   // check to see if the clicked state has been dragged over an example state
   // to be deleted
-  // if clicked state is empty, there is no need to handle this possibility
+  // if clicked state is empty, then there is no need to handle this possibility
   if (!clicked_state_.IsEmpty()) {
     const bool kStateWasDeleted = HandleStateDeletion(kClickLocation);
     if (kStateWasDeleted) {
@@ -107,43 +113,45 @@ void TuringMachineSimulatorApp::mouseDown(ci::app::MouseEvent event) {
     }
   }
   
-  // handle the creation of new state
+  // handle the creation of a new state
   const bool kStateWasCreated = HandleStateCreation(kClickLocation);
   if (kStateWasCreated) {
     return;
   }
   
   // if a user defined state is clicked on, if it was a right click, change the
-  // name of that state, or else, it becomes the clicked state
-  for (const State &state : states_) {
-    if (state.IsStateCenterWithinGivenRadiusOfPoint(kClickLocation,
+  // name of that state, otherwise it becomes the clicked state
+  for (const State &kState : states_) {
+    if (kState.IsStateCenterWithinGivenRadiusOfPoint(kClickLocation,
         kRadiusOfStates)) {
       if (event.isRight()) {
         editing_state_name_ = true;
-        state_being_modified_ = state;
+        state_being_modified_ = kState;
       } else {
-        clicked_state_ = state;
+        clicked_state_ = kState;
       }
       return; // once the clicked on state is found, nothing to search for
     }
   }
   
-  // if no state gets clicked and no action is preformed, clicked state is empty
-  // this is necessary for if a user clicks a state and then clicks the canvas
+  // if no state gets clicked and no action is performed, clicked state is empty
+  // this is necessary for in case a user clicks a state and then clicks the 
+  // canvas
   clicked_state_ = State(); 
 }
 
 void TuringMachineSimulatorApp::mouseDrag(ci::app::MouseEvent event) {
-  // if clicked state is empty or simulation is in progress, 
+  // if clicked state is empty or the simulation is in progress, 
   // there's nothing to drag
   if (clicked_state_.IsEmpty() || simulation_is_in_progress_) {
     return;
   }
+  
   // update the clicked state's position to be where the user dragged it
   // cannot do a for-each loop here because we need the index in states_
   for (size_t i = 0; i < states_.size(); i++) {
     const State kCurrentState = states_.at(i);
-    // update the clicked state's position to be where the user dragged itl
+    // update the clicked state's position to be where the user dragged it
     if (kCurrentState.Equals(clicked_state_)) {
       const State kUpdatedState = State(kCurrentState.GetId(),
           kCurrentState.GetStateName(), event.getPos(), kRadiusOfStates);
@@ -159,8 +167,9 @@ void TuringMachineSimulatorApp::keyDown(ci::app::KeyEvent event) {
   if (simulation_is_in_progress_) {
     return;
   }
+  
   const int kEventCode = event.getCode();
-  // NOTE: shift keys will cause major bugs in this ui if not explicitly handled
+  // NOTE: shift keys will cause major bugs in this UI if not explicitly handled
   if (kEventCode == ci::app::KeyEvent::KEY_LSHIFT 
       || kEventCode == ci::app::KeyEvent::KEY_RSHIFT) {
     return;
@@ -171,255 +180,51 @@ void TuringMachineSimulatorApp::keyDown(ci::app::KeyEvent event) {
     return;
   }
   
-  // editing state name takes precedence to adding arrow if both are in progress
+  // editing state name takes precedence to adding arrow
   if (editing_state_name_) {
     EditStateName(event);
     return;
   }
   
-  const size_t kNotEditingAddArrowText= 5;
-  if (index_of_add_arrow_text_to_edit != kNotEditingAddArrowText) {
+  // edit add arrow text if applicable
+  const size_t kNotEditingAddArrowIndex= 5;
+  if (index_of_add_arrow_text_to_edit != kNotEditingAddArrowIndex) {
     EditAddArrowInputBox(event);
   }
 }
 
-void TuringMachineSimulatorApp::DrawAddArrowMenu() const {
-  // draw the add arrow box
-  ci::gl::color(ci::Color("papayawhip"));
-  const glm::vec2 kUpperCorner= glm::vec2(kAddArrowBoxXBoundary,
-      kAddArrowBoxYBoundary);
-  const glm::vec2 kLowerCorner = glm::vec2(kHorizontalWindowSize, kVerticalWindowSize);
-  ci::gl::drawSolidRect(ci::Rectf(kUpperCorner, kLowerCorner));
-  
-  //outline the box
-  ci::gl::color(ci::Color("black"));
-  ci::gl::drawStrokedRect(ci::Rectf(kUpperCorner, kLowerCorner));
-  
-  // draw menu heading
-  const float kXLocationOfHeading = ((kHorizontalWindowSize 
-      - kAddArrowBoxXBoundary) / 2) + kAddArrowBoxXBoundary;
-  const glm::vec2 kLocationOfHeading = glm::vec2(kXLocationOfHeading, 
-      kAddArrowBoxYBoundary + 5);
-  ci::gl::drawStringCentered("ADD ARROW", kLocationOfHeading, 
-      ci::Color("black"));
-  
-  // add input for read
-  const glm::vec2 kLocationOfRead = glm::vec2(kAddArrowBoxXBoundary, 
-      kAddArrowBoxYBoundary + 20);
-  ci::gl::drawString("Read: ", kLocationOfRead, 
-      ci::Color("black"));
-  ci::gl::color(ci::Color("white"));
-  ci::gl::drawSolidRect(kReadInputBox);
-  ci::gl::drawString(add_arrow_inputs_[kIndexOfReadInput], 
-      kUpperCornerOfReadInput, ci::Color("black"));
-  
-  // add input for write
-  const glm::vec2 kLocationOfWrite = glm::vec2(kAddArrowBoxXBoundary, 
-      kAddArrowBoxYBoundary + 45);
-  ci::gl::drawString("Write: ", kLocationOfWrite, 
-      ci::Color("black"));
-  ci::gl::color(ci::Color("white"));
-  ci::gl::drawSolidRect(kWriteInputBox);
-  ci::gl::drawString(add_arrow_inputs_[kIndexOfWriteInput],
-      kUpperCornerOfWriteInput, ci::Color("black"));
-  
-  // add input for shift
-  const glm::vec2 kLocationOfShift = glm::vec2(kAddArrowBoxXBoundary, 
-      kAddArrowBoxYBoundary + 70);
-  ci::gl::drawString("Shift: ", kLocationOfShift, 
-      ci::Color("black"));
-  ci::gl::color(ci::Color("white"));
-  ci::gl::drawSolidRect(kShiftInputBox);
-  ci::gl::drawString(add_arrow_inputs_[kIndexOfShiftInput], 
-      kUpperCornerOfShiftInput, ci::Color("black"));
-  
-  // add input for move from
-  const glm::vec2 kLocationOfMoveFrom = glm::vec2(kAddArrowBoxXBoundary, 
-      kAddArrowBoxYBoundary + 95);
-  ci::gl::drawString("Move From: ", kLocationOfMoveFrom, 
-      ci::Color("black"));
-  ci::gl::color(ci::Color("white"));
-  ci::gl::drawSolidRect(kMoveFromInputBox);
-  ci::gl::drawString(add_arrow_inputs_[kIndexOfMoveFromInput], 
-      kUpperCornerOfMoveFromInput, ci::Color("black"));
-  
-  // add input for move to
-  const glm::vec2 kLocationOfMoveTo = glm::vec2(kAddArrowBoxXBoundary, 
-      kAddArrowBoxYBoundary + 120);
-  ci::gl::drawString("Move To: ", kLocationOfMoveTo, 
-      ci::Color("black"));
-  ci::gl::color(ci::Color("white"));
-  ci::gl::drawSolidRect(kMoveToInputBox);
-  ci::gl::drawString(add_arrow_inputs_[kIndexOfMoveToInput], 
-      kUpperCornerOfMoveToInput, ci::Color("black"));
-  
-  //add submit button
-  ci::gl::color(ci::Color("honeydew"));
-  ci::gl::drawSolidRect(kSubmitButton);
-  const glm::vec2 kLocationOfSubmit = glm::vec2(kXLocationOfHeading, 
-      kAddArrowBoxYBoundary + 140);
-  ci::gl::drawStringCentered("SUBMIT", kLocationOfSubmit, 
-      ci::Color("black"));
-}
-
-void TuringMachineSimulatorApp::DrawClearButton() const {
-  ci::gl::color(ci::Color("salmon"));
-  ci::gl::drawSolidRect(kClearButton);
-  ci::gl::color(ci::Color("black"));
-  ci::gl::drawStrokedRect(kClearButton);
-  const double kHorizontalCenterOfButton = (kUpperCornerClearButton.x
-                                            + kLowerCornerClearButton.x) / 2;
-  const double kVerticalCenterOfButton = (kUpperCornerClearButton.y
-                                          + kLowerCornerClearButton.y) / 2;
-  const glm::vec2 kClearButtonLabelCoordinates = glm::vec2(kHorizontalCenterOfButton, kVerticalCenterOfButton);
-  ci::gl::drawStringCentered("CLEAR", kClearButtonLabelCoordinates, 
-      "black");
-}
-
-void TuringMachineSimulatorApp::DrawSimulateButton() const {
-  ci::gl::color(ci::Color("palegreen"));
-  ci::gl::drawSolidRect(kSimulateButton);
-  ci::gl::color(ci::Color("black"));
-  ci::gl::drawStrokedRect(kSimulateButton);
-  const double kHorizontalCenterOfButton = (kUpperCornerSimulateButton.x 
-      + kLowerCornerSimulateButton.x) / 2;
-  const double kVerticalCenterOfButton = (kUpperCornerSimulateButton.y
-                                  + kLowerCornerSimulateButton.y) / 2;
-  const glm::vec2 kSimulateButtonLabelCoordinates = 
-      glm::vec2(kHorizontalCenterOfButton, kVerticalCenterOfButton);
-  ci::gl::drawStringCentered("SIMULATE!", kSimulateButtonLabelCoordinates, 
-      "black");
-}
-
-void TuringMachineSimulatorApp::DrawArrow(const Direction &kDirection) const {
-  glm::vec2 move_from_center;
-  glm::vec2 move_to_center;
-  for (const State &kState : states_) {
-    // NOTE: not in an else-if statement because a direction may keep the same 
-    // state, in which case the move from and move to states would be the same
-    if (kState.Equals(kDirection.GetStateToMoveFrom())) {
-      move_from_center = kState.GetStateLocation();
-    }
-    if (kState.Equals(kDirection.GetStateToMoveTo())) {
-      move_to_center = kState.GetStateLocation();
-    }
-  }
-  ci::gl::color(ci::Color("black"));
-  ci::gl::drawLine(move_from_center, move_to_center);
-  const glm::vec2 kLocationOfDirectionText = 
-      kHelperMethods.GetDirectionTextLocation(move_from_center, move_to_center, 
-      kRadiusOfStates);
-  ci::gl::drawString(kDirection.ToString(), kLocationOfDirectionText, 
-      "black");
-}
-
-void TuringMachineSimulatorApp::DrawTape() const {
-  const double kPixelLengthOfTape = kLowerCornerOfTape.x - kUpperCornerOfTape.x;
-  const double kHorizontalSizeOfSquares = kPixelLengthOfTape / tape_.size();
-  glm::vec2 square_upper_corner = kUpperCornerOfTape;
-  glm::vec2 square_lower_corner = glm::vec2(kUpperCornerOfTape.x 
-      + kHorizontalSizeOfSquares, kLowerCornerOfTape.y);
-  
-  ci::gl::color(ci::Color("black"));
-  for (size_t i = 0; i < tape_.size(); i++) {
-    // draw the square
-    ci::gl::drawStrokedRect(ci::Rectf(square_upper_corner,
-        square_lower_corner));
-    // display the character
-    const double kHorizontalCenter = (square_upper_corner.x 
-        + square_lower_corner.x) / 2;
-    const double kVerticalCenter = (square_upper_corner.y 
-        + square_lower_corner.y) / 2;
-    std::stringstream character_as_string;
-    character_as_string << tape_.at(i);
-    ci::gl::drawString(character_as_string.str(), 
-        glm::vec2(kHorizontalCenter, kVerticalCenter), "black");
-    // draw the scanner if it is reading this character
-    if (i == index_of_character_being_read_) {
-      const int kVerticalDistanceFromTape = 100;
-      const glm::vec2 kLowerLeftPoint = glm::vec2(square_upper_corner.x, 
-          square_lower_corner.y + kVerticalDistanceFromTape);
-      const glm::vec2 kLowerRightPoint = glm::vec2(square_lower_corner.x, 
-          square_lower_corner.y + kVerticalDistanceFromTape);
-      const glm::vec2 kPointOfTriangle = glm::vec2(kHorizontalCenter, 
-          square_lower_corner.y);
-      ci::gl::drawSolidTriangle(kLowerLeftPoint, kPointOfTriangle,
-          kLowerRightPoint);
-    }
-    // increment the horizontal coordinates of the square
-    square_upper_corner.x = square_lower_corner.x;
-    square_lower_corner.x += kHorizontalSizeOfSquares;
-  }
-}
-
-void TuringMachineSimulatorApp::DrawResetTapeButton() const {
-  ci::gl::color(ci::Color("salmon"));
-  ci::gl::drawSolidRect(kResetTapeButton);
-  ci::gl::color(ci::Color("black"));
-  ci::gl::drawStrokedRect(kResetTapeButton);
-  const double kHorizontalCenterOfButton = (kUpperCornerOfResetTapeButton.x
-      + kLowerCornerOfResetTapeButton.x) / 2;
-  const double kVerticalCenterOfButton = (kUpperCornerOfResetTapeButton.y
-      + kLowerCornerOfResetTapeButton.y) / 2;
-  const glm::vec2 kResetTapeButtonLabelCoordinates =
-      glm::vec2(kHorizontalCenterOfButton, kVerticalCenterOfButton);
-  ci::gl::drawStringCentered("Reset Tape", kResetTapeButtonLabelCoordinates,
-      "black");
-}
-
-void TuringMachineSimulatorApp::DrawStopSimulationButton() const {
-  ci::gl::color(ci::Color("salmon"));
-  ci::gl::drawSolidRect(kStopSimulationButton);
-  ci::gl::color(ci::Color("black"));
-  ci::gl::drawStrokedRect(kStopSimulationButton);
-  const double kHorizontalCenterOfButton = (kUpperCornerStopButton.x
-      + kLowerCornerStopButton.x) / 2;
-  const double kVerticalCenterOfButton = (kUpperCornerStopButton.y
-      + kLowerCornerStopButton.y) / 2;
-  const glm::vec2 kStopSimulationButtonLabelCoordinates =
-      glm::vec2(kHorizontalCenterOfButton, kVerticalCenterOfButton);
-  ci::gl::drawStringCentered("STOP!", 
-      kStopSimulationButtonLabelCoordinates, "black");
-}
-
-void TuringMachineSimulatorApp::DisplayErrorMessage() const {
-  if (turing_machine_.IsEmpty()) {
-    const std::string kTuringMachineError = turing_machine_.GetErrorMessage();
-    if (kTuringMachineError != "") {
-      const std::string kErrorMessage = "ERROR: " 
-          + turing_machine_.GetErrorMessage();
-      const glm::vec2 kPositionOfErrorMessage = glm::vec2(kMenuXBoundary / 2,
-          10);
-      ci::gl::drawStringCentered(kErrorMessage, kPositionOfErrorMessage, 
-          "firebrick");
-    }
-  }
-}
-
 bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
-    &kClickLocation) {
+    &click_location) {
   const size_t kIndexOfNoTextToEdit = 5;
   bool input_box_was_clicked = false;
-  if (kHelperMethods.IsPointInRectangle(kClickLocation, kReadInputBox)) {
+
+  if (turingmachinesimulator::TuringMachineSimulatorHelper::IsPointInRectangle
+      (click_location, kReadInputBox)) {
     index_of_add_arrow_text_to_edit = kIndexOfReadInput;
     input_box_was_clicked = true;
-  } else if (kHelperMethods.IsPointInRectangle(kClickLocation,
-      kWriteInputBox)) {
+
+  } else if (turingmachinesimulator::TuringMachineSimulatorHelper
+        ::IsPointInRectangle(click_location, kWriteInputBox)) {
     index_of_add_arrow_text_to_edit = kIndexOfWriteInput;
     input_box_was_clicked = true;
-  } else if (kHelperMethods.IsPointInRectangle(kClickLocation,
-      kShiftInputBox)) {
+
+  } else if (turingmachinesimulator::TuringMachineSimulatorHelper
+        ::IsPointInRectangle(click_location, kShiftInputBox)) {
     index_of_add_arrow_text_to_edit = kIndexOfShiftInput;
     input_box_was_clicked = true;
-  } else if (kHelperMethods.IsPointInRectangle(kClickLocation,
-      kMoveFromInputBox)) {
+
+  } else if (turingmachinesimulator::TuringMachineSimulatorHelper
+        ::IsPointInRectangle(click_location, kMoveFromInputBox)) {
     index_of_add_arrow_text_to_edit = kIndexOfMoveFromInput;
     input_box_was_clicked = true;
-  } else if (kHelperMethods.IsPointInRectangle(kClickLocation,
-      kMoveToInputBox)) {
+
+  } else if (turingmachinesimulator::TuringMachineSimulatorHelper
+        ::IsPointInRectangle(click_location, kMoveToInputBox)) {
     index_of_add_arrow_text_to_edit = kIndexOfMoveToInput;
     input_box_was_clicked = true;
-  } else if (kHelperMethods.IsPointInRectangle(kClickLocation, kSubmitButton)) {
+
+  } else if (turingmachinesimulator::TuringMachineSimulatorHelper
+        ::IsPointInRectangle(click_location, kSubmitButton)) {
     // on submit create a direction from the inputted information
     Direction direction = Direction(add_arrow_inputs_, states_);
     // if direction is empty, the creation of a direction was unsuccessful, so
@@ -430,84 +235,110 @@ bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
     }
     index_of_add_arrow_text_to_edit = kIndexOfNoTextToEdit;
     input_box_was_clicked = true;
-  } else if (kHelperMethods.IsPointInRectangle(kClickLocation, kClearButton)) {
+
+  } else if (turingmachinesimulator::TuringMachineSimulatorHelper
+        ::IsPointInRectangle(click_location, kClearButton)) {
     // reset all modifiable global variables when clear is clicked
     directions_ = {};
     states_ = {};
-    tape_ = {'-', '-', '-', '-', '-', '-', '-', '-'};
+    const char kBlankCharacter = '-';
+    tape_ = {kBlankCharacter, kBlankCharacter, kBlankCharacter, kBlankCharacter,
+             kBlankCharacter, kBlankCharacter, kBlankCharacter, kBlankCharacter};
     index_of_character_being_read_ = 0;
     simulation_is_in_progress_ = false;
     turing_machine_ = TuringMachine();
     state_id_ = 0;
     add_arrow_inputs_ = {"single char", "single char", "L/R/N", "q5", "qh"};
-    index_of_add_arrow_text_to_edit = 5;
+    index_of_add_arrow_text_to_edit = add_arrow_inputs_.size();
     editing_state_name_ = false;
     state_being_modified_ = State();
-    index_of_character_being_edited_ = 8;
+    index_of_character_being_edited_ = tape_.size();
     editing_tape_character_ = false;
-  } else if (kHelperMethods.IsPointInRectangle(kClickLocation, kSimulateButton)) {
+
+  } else if (turingmachinesimulator::TuringMachineSimulatorHelper
+        ::IsPointInRectangle(click_location, kSimulateButton)) {
+    // create a turing machine from user-defined states, directions, and tape
+    // on simulate button click
     turing_machine_ = TuringMachine(states_, directions_, tape_);
+    // if turing machine is empty, the creation of a turing machine was 
+    // unsuccessful so we want to display the error message, otherwise, we
+    // want to being the simulation
     if (turing_machine_.IsEmpty()) {
       DisplayErrorMessage();
     } else {
       simulation_is_in_progress_ = true;
     }
-  } else if (kHelperMethods.IsPointInRectangle(kClickLocation,
-      kResetTapeButton)) {
-    tape_ = {'-', '-', '-', '-', '-', '-', '-', '-'};
+
+  } else if (turingmachinesimulator::TuringMachineSimulatorHelper::
+        IsPointInRectangle(click_location, kResetTapeButton)) {
+    // when the tape is reset, set the tape to all blank characters and 
+    // reset scanner to index 0 of the tape
+    const char kBlankCharacter = '-';
+    tape_ = {kBlankCharacter, kBlankCharacter, kBlankCharacter, kBlankCharacter,
+             kBlankCharacter, kBlankCharacter, kBlankCharacter, kBlankCharacter};
     index_of_character_being_read_ = 0;
   }
-  
-  const size_t kIndexOfTapeSquareClicked = 
-      kHelperMethods.GetIndexOfSquareOfTapeClicked(kClickLocation, 
-      kUpperCornerOfTape, kLowerCornerOfTape);
-  if (kIndexOfTapeSquareClicked != 8) {
+
+  // if a square of the tape is clicked, then the user is about to edit
+  // the square of the tape that they clicked on
+  const size_t kIndexOfTapeSquareClicked = turingmachinesimulator
+      ::TuringMachineSimulatorHelper::GetIndexOfSquareOfTapeClicked
+      (click_location, tape_.size(), kUpperCornerOfTape,
+       kLowerCornerOfTape);
+  if (kIndexOfTapeSquareClicked != tape_.size()) {
     editing_tape_character_ = true;
     index_of_character_being_edited_ = kIndexOfTapeSquareClicked;
   }
-  
+
   return input_box_was_clicked;
 }
 
-bool TuringMachineSimulatorApp::HandleStateCreation(const glm::vec2 
-    &kClickLocation) {
+bool TuringMachineSimulatorApp::HandleStateCreation(const glm::vec2
+    &click_location) {
   bool new_state_was_created = false;
   State new_state;
-  if (kExampleStartingState.IsStateCenterWithinGivenRadiusOfPoint(kClickLocation, 
+
+  if (kExampleStartingState.IsStateCenterWithinGivenRadiusOfPoint(click_location,
       kRadiusOfStates)) {
-    new_state = State(state_id_, "q1", kClickLocation, 
-        kRadiusOfStates);
+    const std::string kStartingStateName = "q1";
+    new_state = State(state_id_, kStartingStateName, click_location,
+                      kRadiusOfStates);
     new_state_was_created = true;
   }
-  if (kExampleNthState.IsStateCenterWithinGivenRadiusOfPoint(kClickLocation,
+
+  if (kExampleNthState.IsStateCenterWithinGivenRadiusOfPoint(click_location,
       kRadiusOfStates)) {
-    new_state = State(state_id_, "qn", kClickLocation,
-       kRadiusOfStates);
+    const std::string kNthStateName = "qn";
+    new_state = State(state_id_, kNthStateName, click_location, kRadiusOfStates);
     new_state_was_created = true;
   }
-  if (kExampleHaltingState.IsStateCenterWithinGivenRadiusOfPoint(kClickLocation,
+
+  if (kExampleHaltingState.IsStateCenterWithinGivenRadiusOfPoint(click_location,
       kRadiusOfStates)) {
-    new_state = State(state_id_, "qh", kClickLocation, 
-        kRadiusOfStates);
+    const std::string kHaltingStateName = "qh";
+    new_state = State(state_id_, kHaltingStateName, click_location,
+                      kRadiusOfStates);
     new_state_was_created = true;
   }
+
   if (new_state_was_created) {
     states_.push_back(new_state);
     state_id_ += 1;
     clicked_state_ = new_state;
   }
+
   return new_state_was_created;
 }
 
-bool TuringMachineSimulatorApp::HandleStateDeletion(const glm::vec2 
-    &kClickLocation) {
+bool TuringMachineSimulatorApp::HandleStateDeletion(const glm::vec2
+    &click_location) {
   // 2 nodes are touching each-other if their distance is within double their 
   // radii
   const int kDoubleTheRadii = 2 * kRadiusOfStates;
   if (clicked_state_.IsStateCenterWithinGivenRadiusOfPoint(kLocationOfQ1,
       kDoubleTheRadii) || clicked_state_.IsStateCenterWithinGivenRadiusOfPoint
-      (kLocationOfQn, kDoubleTheRadii) || 
-      clicked_state_.IsStateCenterWithinGivenRadiusOfPoint(kLocationOfQh,
+      (kLocationOfQn, kDoubleTheRadii)
+      || clicked_state_.IsStateCenterWithinGivenRadiusOfPoint(kLocationOfQh,
       kDoubleTheRadii)) {
     // iterate through the states and remove the clicked_state_ node from the
     // list of active states
@@ -522,19 +353,18 @@ bool TuringMachineSimulatorApp::HandleStateDeletion(const glm::vec2
         break; // once we've found the state to erase, nothing to search for
       }
     }
-    
+
     // iterate through the directions and remove all directions involving
     // the deleted state
     const std::vector<Direction> kOriginalDirections = directions_;
     size_t index_in_directions = 0;
-    for (size_t i = 0; i < kOriginalDirections.size(); i++) {
-      Direction current_direction = kOriginalDirections.at(i);
+    for (const Direction &kDirection : kOriginalDirections) {
       // NOTE: Must be in an else if statement in case state to move to is the
       // same as the state to move from
-      if (current_direction.GetStateToMoveTo().Equals(state_to_erase)) {
+      if (kDirection.GetStateToMoveTo().Equals(state_to_erase)) {
         directions_.erase(directions_.begin() + index_in_directions);
         index_in_directions -= 1;
-      } else if (current_direction.GetStateToMoveFrom().Equals(state_to_erase)) {
+      } else if (kDirection.GetStateToMoveFrom().Equals(state_to_erase)) {
         directions_.erase(directions_.begin() + index_in_directions);
         index_in_directions -= 1;
       }
@@ -542,40 +372,45 @@ bool TuringMachineSimulatorApp::HandleStateDeletion(const glm::vec2
     }
     return true;
   }
+
   return false;
 }
 
-void TuringMachineSimulatorApp::EditTapeCharacter(const ci::app::KeyEvent 
-    &kKeyEvent) {
-  const int kEventCode = kKeyEvent.getCode();
+void TuringMachineSimulatorApp::EditTapeCharacter(const ci::app::KeyEvent
+    &key_event) {
+  const int kEventCode = key_event.getCode();
+
   // on return, stop editing the tape character name
   if (kEventCode == ci::app::KeyEvent::KEY_RETURN) {
     editing_tape_character_ = false;
-    index_of_character_being_edited_ = 8;
+    index_of_character_being_edited_ = tape_.size();
     return;
   }
 
-  // make the character a blank (-) on backspace
+  // make the character a blank character on backspace
   if (kEventCode == ci::app::KeyEvent::KEY_BACKSPACE) {
-    tape_[index_of_character_being_edited_] = '-';
+    const char kBlankCharacter = '-';
+    tape_[index_of_character_being_edited_] = kBlankCharacter;
     return;
   }
 
   // if no special event codes were typed, change the character to be the
   // character entered by the user
-  tape_[index_of_character_being_edited_] = kKeyEvent.getChar();
+  tape_[index_of_character_being_edited_] = key_event.getChar();
 }
 
-void TuringMachineSimulatorApp::EditStateName(const ci::app::KeyEvent 
-    &kKeyEvent) {
-  const int kEventCode = kKeyEvent.getCode();
+
+void TuringMachineSimulatorApp::EditStateName(const ci::app::KeyEvent
+    &key_event) {
+  const int kEventCode = key_event.getCode();
+
   // on return, stop editing the state name
   if (kEventCode == ci::app::KeyEvent::KEY_RETURN) {
     editing_state_name_ = false;
     state_being_modified_ = State();
     return;
   }
-  
+
   // find the index in states_ of the state whose name is being modified
   size_t kIndexOfStateBeingModified;
   for (size_t i = 0; i < states_.size(); i++) {
@@ -586,7 +421,7 @@ void TuringMachineSimulatorApp::EditStateName(const ci::app::KeyEvent
     }
   }
   const std::string kNameToEdit = state_being_modified_.GetStateName();
-  
+
   // remove the last character from the string on backspace
   if (kEventCode == ci::app::KeyEvent::KEY_BACKSPACE) {
     // state name may not be less than 1 character (the q may not be deleted)
@@ -599,22 +434,20 @@ void TuringMachineSimulatorApp::EditStateName(const ci::app::KeyEvent
     }
     return;
   }
-  
+
   // if no special event codes were typed, add the character that was typed
   // to the end of the state's name
-  state_being_modified_.SetStateName(kNameToEdit + kKeyEvent.getChar());
+  state_being_modified_.SetStateName(kNameToEdit + key_event.getChar());
   states_[kIndexOfStateBeingModified] = state_being_modified_;
-  return;
 }
 
-void TuringMachineSimulatorApp::EditAddArrowInputBox(const ci::app::KeyEvent 
-    &kKeyEvent) {
-  const int kEventCode = kKeyEvent.getCode();
-  
+void TuringMachineSimulatorApp::EditAddArrowInputBox(const ci::app::KeyEvent
+    &key_event) {
+  const int kEventCode = key_event.getCode();
+
   // on return, stop editing the text that's being edited
   if (kEventCode == ci::app::KeyEvent::KEY_RETURN) {
-    const size_t kNotEditingAddArrowText= 5;
-    index_of_add_arrow_text_to_edit = kNotEditingAddArrowText;
+    index_of_add_arrow_text_to_edit = add_arrow_inputs_.size();
     return;
   }
 
@@ -623,9 +456,9 @@ void TuringMachineSimulatorApp::EditAddArrowInputBox(const ci::app::KeyEvent
   // if backspace, remove 1 character from the end of the text being edited
   if (kEventCode == ci::app::KeyEvent::KEY_BACKSPACE) {
     // if size of text is less than or equal to 0, there's nothing to remove
-    if (kTextToEdit.size() > 0) {
+    if (!kTextToEdit.empty()) {
       const size_t kLastCharacterOfText = kTextToEdit.size() - 1;
-      add_arrow_inputs_[index_of_add_arrow_text_to_edit] = 
+      add_arrow_inputs_[index_of_add_arrow_text_to_edit] =
           kTextToEdit.substr(0, kLastCharacterOfText);
     }
     return;
@@ -634,7 +467,213 @@ void TuringMachineSimulatorApp::EditAddArrowInputBox(const ci::app::KeyEvent
   // if no special event codes were typed, then append the entered character to 
   // the text that's being edited
   add_arrow_inputs_[index_of_add_arrow_text_to_edit] = kTextToEdit
-      + kKeyEvent.getChar();
+      + key_event.getChar();
+}
+
+void TuringMachineSimulatorApp::StopSimulation() {
+  simulation_is_in_progress_ = false;
+  // resume normal frame rate from reduced frame rate so graphics aren't slow
+  ci::app::setFrameRate(60);
+  // the user will not likely want to continue editing these
+  // when the simulation ends
+  editing_tape_character_ = false;
+  editing_state_name_ = false;
+  index_of_add_arrow_text_to_edit = add_arrow_inputs_.size();
+}
+
+void TuringMachineSimulatorApp::DrawAddArrowMenu() const {
+  // draw the add arrow box
+  ci::gl::color(ci::Color("papayawhip"));
+  const glm::vec2 kUpperCorner= glm::vec2(kAddArrowBoxXBoundary,
+      kAddArrowBoxYBoundary);
+  const glm::vec2 kLowerCorner = glm::vec2(kHorizontalWindowSize,
+      kVerticalWindowSize);
+  ci::gl::drawSolidRect(ci::Rectf(kUpperCorner, kLowerCorner));
+  
+  //outline the box
+  ci::gl::color(ci::Color("black"));
+  ci::gl::drawStrokedRect(ci::Rectf(kUpperCorner, kLowerCorner));
+  
+  // draw menu heading
+  const float kXLocationOfHeading = ((kHorizontalWindowSize 
+      - kAddArrowBoxXBoundary) / 2) + kAddArrowBoxXBoundary;
+  // note: 5 was found by experimenting for best visual experience
+  const glm::vec2 kLocationOfHeading = glm::vec2(kXLocationOfHeading, 
+      kAddArrowBoxYBoundary + 5);
+  ci::gl::drawStringCentered("ADD ARROW", kLocationOfHeading, 
+      ci::Color("black"));
+  
+  // add input for read character;
+  // note: 20 was found by experimenting for best visual experience
+  const glm::vec2 kLocationOfRead = glm::vec2(kAddArrowBoxXBoundary, 
+      kAddArrowBoxYBoundary + 20);
+  ci::gl::drawString("Read: ", kLocationOfRead, 
+      ci::Color("black"));
+  ci::gl::color(ci::Color("white"));
+  ci::gl::drawSolidRect(kReadInputBox);
+  ci::gl::drawString(add_arrow_inputs_[kIndexOfReadInput], 
+      kUpperCornerOfReadInput, ci::Color("black"));
+  
+  // add input for write character
+  // note: 45 was found by experimenting for best visual experience
+  const glm::vec2 kLocationOfWrite = glm::vec2(kAddArrowBoxXBoundary, 
+      kAddArrowBoxYBoundary + 45);
+  ci::gl::drawString("Write: ", kLocationOfWrite, 
+      ci::Color("black"));
+  ci::gl::color(ci::Color("white"));
+  ci::gl::drawSolidRect(kWriteInputBox);
+  ci::gl::drawString(add_arrow_inputs_[kIndexOfWriteInput],
+      kUpperCornerOfWriteInput, ci::Color("black"));
+  
+  // add input for shift character
+  // note: 70 was found by experimenting for best visual experience
+  const glm::vec2 kLocationOfShift = glm::vec2(kAddArrowBoxXBoundary, 
+      kAddArrowBoxYBoundary + 70);
+  ci::gl::drawString("Shift: ", kLocationOfShift, 
+      ci::Color("black"));
+  ci::gl::color(ci::Color("white"));
+  ci::gl::drawSolidRect(kShiftInputBox);
+  ci::gl::drawString(add_arrow_inputs_[kIndexOfShiftInput], 
+      kUpperCornerOfShiftInput, ci::Color("black"));
+  
+  // add input for move from
+  // note: 95 was found by experimenting for best visual experience
+  const glm::vec2 kLocationOfMoveFrom = glm::vec2(kAddArrowBoxXBoundary, 
+      kAddArrowBoxYBoundary + 95);
+  ci::gl::drawString("Move From: ", kLocationOfMoveFrom, 
+      ci::Color("black"));
+  ci::gl::color(ci::Color("white"));
+  ci::gl::drawSolidRect(kMoveFromInputBox);
+  ci::gl::drawString(add_arrow_inputs_[kIndexOfMoveFromInput], 
+      kUpperCornerOfMoveFromInput, ci::Color("black"));
+  
+  // add input for move to
+  // note: 120 was found by experimenting for best visual experience
+  const glm::vec2 kLocationOfMoveTo = glm::vec2(kAddArrowBoxXBoundary, 
+      kAddArrowBoxYBoundary + 120);
+  ci::gl::drawString("Move To: ", kLocationOfMoveTo, 
+      ci::Color("black"));
+  ci::gl::color(ci::Color("white"));
+  ci::gl::drawSolidRect(kMoveToInputBox);
+  ci::gl::drawString(add_arrow_inputs_[kIndexOfMoveToInput], 
+      kUpperCornerOfMoveToInput, ci::Color("black"));
+  
+  //add submit button
+  ci::gl::color(ci::Color("honeydew"));
+  ci::gl::drawSolidRect(kSubmitButton);
+  // note: 140 was found by experimenting for best visual experience
+  const glm::vec2 kLocationOfSubmit = glm::vec2(kXLocationOfHeading, 
+      kAddArrowBoxYBoundary + 140);
+  ci::gl::drawStringCentered("SUBMIT", kLocationOfSubmit, 
+      ci::Color("black"));
+}
+
+void TuringMachineSimulatorApp::DrawArrow(const Direction &direction) const {
+  glm::vec2 move_from_state_center;
+  glm::vec2 move_to_state_center;
+
+  // find the location of the states that the arrow is between
+  for (const State &kState : states_) {
+    // NOTE: not in an else-if statement because a direction may keep the same 
+    // state, in which case the move from and move to states would be the same
+    if (kState.Equals(direction.GetStateToMoveFrom())) {
+      move_from_state_center = kState.GetStateLocation();
+    }
+    if (kState.Equals(direction.GetStateToMoveTo())) {
+      move_to_state_center = kState.GetStateLocation();
+    }
+  }
+  // draw a line between the 2 states
+  ci::gl::color(ci::Color("black"));
+  ci::gl::drawLine(move_from_state_center, move_to_state_center);
+
+  // display the direction instructions besides the line
+  const glm::vec2 kLocationOfDirectionText =
+      turingmachinesimulator::TuringMachineSimulatorHelper
+      ::GetDirectionTextLocation(move_from_state_center, move_to_state_center,
+      kRadiusOfStates);
+  ci::gl::drawString(direction.ToString(), kLocationOfDirectionText,
+      "black");
+
+  // draw the arrow onto the line
+  const std::tuple<glm::vec2, glm::vec2, glm::vec2> kArrow =
+      turingmachinesimulator::TuringMachineSimulatorHelper::GetArrow
+      (move_from_state_center, move_to_state_center);
+  ci::gl::color(ci::Color("black"));
+  const size_t kIndexOfFirstPoint = 0;
+  const size_t kIndexOfArrowTip = 1;
+  const size_t kIndexOfThirdPoint = 2;
+  ci::gl::drawLine(std::get<kIndexOfFirstPoint>(kArrow),
+      std::get<kIndexOfArrowTip>(kArrow));
+  ci::gl::drawLine(std::get<kIndexOfArrowTip>(kArrow),
+      std::get<kIndexOfThirdPoint>(kArrow));
+}
+
+void TuringMachineSimulatorApp::DrawTape() const {
+  const double kPixelLengthOfTape = kLowerCornerOfTape.x - kUpperCornerOfTape.x;
+  const double kHorizontalSizeOfSquares = kPixelLengthOfTape / tape_.size();
+  glm::vec2 square_upper_corner = kUpperCornerOfTape;
+  glm::vec2 square_lower_corner = glm::vec2(kUpperCornerOfTape.x
+     + kHorizontalSizeOfSquares, kLowerCornerOfTape.y);
+
+  ci::gl::color(ci::Color("black"));
+  for (size_t i = 0; i < tape_.size(); i++) {
+    // draw the square
+    const ci::Rectf kSquare = ci::Rectf(square_upper_corner, square_lower_corner);
+    ci::gl::drawStrokedRect(kSquare);
+
+    // display the character in the square
+    const glm::vec2 kCenterOfSquare =  turingmachinesimulator
+    ::TuringMachineSimulatorHelper::GetCenterOfRectangle(kSquare);
+    std::stringstream character_as_stringstream;
+    character_as_stringstream << tape_.at(i);
+    ci::gl::drawString(character_as_stringstream.str(), kCenterOfSquare,
+        "black");
+
+    // draw the scanner if it is reading this character
+    if (i == index_of_character_being_read_) {
+      const int kVerticalDistanceFromTape = 100;
+      const glm::vec2 kLowerLeftPoint = glm::vec2(square_upper_corner.x,
+          square_lower_corner.y + kVerticalDistanceFromTape);
+      const glm::vec2 kLowerRightPoint = glm::vec2(square_lower_corner.x,
+          square_lower_corner.y + kVerticalDistanceFromTape);
+      const glm::vec2 kPointOfTriangle = glm::vec2(kCenterOfSquare.x,
+          square_lower_corner.y);
+      ci::gl::drawSolidTriangle(kLowerLeftPoint, kPointOfTriangle,
+          kLowerRightPoint);
+    }
+    // increment the horizontal coordinates of the square
+    square_upper_corner.x = square_lower_corner.x;
+    square_lower_corner.x += kHorizontalSizeOfSquares;
+  }
+}
+
+void TuringMachineSimulatorApp::DisplayErrorMessage() const {
+  // if the turing machine is not empty, there is no error message to display
+  if (turing_machine_.IsEmpty()) {
+    const std::string kTuringMachineError = turing_machine_.GetErrorMessage();
+    // if the error message is empty, there is no error message to display
+    if (!kTuringMachineError.empty()) {
+      const std::string kErrorMessage = "ERROR: "
+          + turing_machine_.GetErrorMessage();
+      // note: 10 was found by experimenting for best visual experience
+      const glm::vec2 kPositionOfErrorMessage = glm::vec2(kMenuXBoundary / 2,
+          10);
+      ci::gl::drawStringCentered(kErrorMessage, kPositionOfErrorMessage,
+          "firebrick");
+    }
+  }
+}
+
+void TuringMachineSimulatorApp::DrawButton(const ci::Rectf &button,
+    const std::string &label, const ci::Color &color) const {
+  ci::gl::color(color);
+  ci::gl::drawSolidRect(button);
+  ci::gl::color(ci::Color("black"));
+  ci::gl::drawStrokedRect(button);
+  ci::gl::drawStringCentered(label, turingmachinesimulator
+      ::TuringMachineSimulatorHelper::GetCenterOfRectangle(button), 
+      "black");
 }
 
 } // namespace turingmachinesimulator

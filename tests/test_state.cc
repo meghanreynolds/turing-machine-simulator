@@ -6,7 +6,7 @@ using namespace turingmachinesimulator;
 
 /**
  * Partitions Testing As Follows:
- * Correctly Marks Objects As Empty/Non-empty
+ * Correctly Marks State Objects As Empty/Non-empty
  * Correctly Checks If A Point Is Within a Given Radius The State
  * Correctly Checks For Equality With Other States
  * Less Than Operator Functions Correctly

@@ -21,36 +21,25 @@ class State {
      * 
      * @param id an int representing a unique id given to each state (no states
      *     in the same Turing Machine should have the same id)
-     * @param kStateName a string representing the name of the state
-     * @param kStateLocation a vec2 representing the location of the state in 
+     * @param state_name a string representing the name of the state
+     * @param state_location a vec2 representing the location of the state in 
      *     the simulator app
      * @param radius a double representing the radius of the state in the 
      *     simulator app
      */
-    State(int id, const std::string &kStateName, const glm::vec2 &kStateLocation, 
+    State(int id, const std::string &state_name, const glm::vec2 &state_location, 
         double radius);
 
     int GetId() const;
     
-    void SetStateName(const std::string &kStateName);
+    void SetStateName(const std::string &state_name);
     
     std::string GetStateName() const;
     
-    void SetStateLocation(const glm::vec2 &kStateLocation);
+    void SetStateLocation(const glm::vec2 &state_location);
     
     glm::vec2 GetStateLocation() const;
-    
-    /**
-     * This method overrides the less than operator to compare states by id's
-     * NOTE: This method is only overridden to allow for states to serve
-     * as map keys
-     * 
-     * @param kState a State to compare with this state
-     * @return a bool that is true if this state's id is less than the id of the 
-     *     given state
-     */
-    bool operator<(const State &kState) const;
-    
+
     /**
      * This method returns true if the state is empty (initialized via default
      * constructor) and false otherwise
@@ -59,29 +48,40 @@ class State {
      *     otherwise
      */
     bool IsEmpty() const;
+    
+    /**
+     * This method overrides the less than operator to compare states by id's
+     * NOTE: This method is only overridden to allow for states to serve
+     * as map keys
+     * 
+     * @param state a State to compare with this state
+     * @return a bool that is true if this state's id is less than the id of the 
+     *     given state
+     */
+    bool operator<(const State &state) const;
 
     /**
      * This method compares this state object with another state object to 
      * see if the 2 states are equal (have the same id)
      * 
-     * @param kState a State object representing a state to compare with this 
+     * @param state a State object representing a state to compare with this 
      *     state
      * @return a bool that is true if the 2 states are equal(same ids) and 
      *     false otherwise
      */
-    bool Equals(const State &kState) const;
+    bool Equals(const State &state) const;
     
     /**
      * This method takes in a point and radius and returns true if the state's
      * center is within the radius of the given point
      * 
-     * @param kPoint a vec2 representing a point
+     * @param point a vec2 representing a point
      * @param radius a double representing a radius to see if the given location 
      *     is within
      * @return a bool that is true if the state is within the given radius of
      *     the given point
      */
-    bool IsStateCenterWithinGivenRadiusOfPoint(const glm::vec2 &kPoint,
+    bool IsStateCenterWithinGivenRadiusOfPoint(const glm::vec2 &point,
         double radius) const;
 
     /**

@@ -3,12 +3,12 @@
 namespace turingmachinesimulator {
 
 bool TuringMachineSimulatorHelper::IsPointInRectangle(const glm::vec2 
-    &kPoint, const ci::Rectf &kRectangle) {
-  const glm::vec2 kRectangleUpperLeftCorner = kRectangle.getUpperLeft();
-  const glm::vec2 kRectangleLowerRightCorner = kRectangle.getLowerRight();
-  if (kPoint.x >= kRectangleUpperLeftCorner.x && kPoint.x
+    &point, const ci::Rectf &rectangle) {
+  const glm::vec2 kRectangleUpperLeftCorner = rectangle.getUpperLeft();
+  const glm::vec2 kRectangleLowerRightCorner = rectangle.getLowerRight();
+  if (point.x >= kRectangleUpperLeftCorner.x && point.x
       <= kRectangleLowerRightCorner.x) {
-    if (kPoint.y >= kRectangleUpperLeftCorner.y && kPoint.y <=
+    if (point.y >= kRectangleUpperLeftCorner.y && point.y <=
         kRectangleLowerRightCorner.y) {
       return true;
     }
@@ -16,49 +16,88 @@ bool TuringMachineSimulatorHelper::IsPointInRectangle(const glm::vec2
   return false;
 }
 
+glm::vec2 TuringMachineSimulatorHelper::GetCenterOfRectangle(const ci::Rectf 
+    &rectangle) {
+  // the variables below use division by 2 to get the midpoint
+  const double kHorizontalCenterOfRectangle = (rectangle.getUpperLeft().x 
+      + rectangle.getLowerRight().x) / 2;
+  const double kVerticalCenterOfRectangle = (rectangle.getUpperLeft().y
+      + rectangle.getLowerRight().y) / 2;
+  return glm::vec2(kHorizontalCenterOfRectangle, kVerticalCenterOfRectangle);
+}
+
 glm::vec2 TuringMachineSimulatorHelper::GetDirectionTextLocation(const glm::vec2 
-    &kPointA, const glm::vec2 &kPointB, double state_radius) {
+    &point_a, const glm::vec2 &point_b, double state_radius) {
   const int kSpaceFromLine = 10;
-  if (kPointB == kPointA) {
-    return glm::vec2(kPointA.x, kPointA.y - state_radius - kSpaceFromLine);
+  if (point_b == point_a) {
+    return glm::vec2(point_a.x, point_a.y - state_radius - kSpaceFromLine);
   }
   const double kDistanceForOverlappingStates = state_radius * 2;
-  if (glm::distance(kPointA, kPointB) <= kDistanceForOverlappingStates) {
-    return glm::vec2(kPointA.x, kPointA.y - state_radius - kSpaceFromLine);
+  if (glm::distance(point_a, point_b) <= kDistanceForOverlappingStates) {
+    return glm::vec2(point_a.x, point_a.y - state_radius - kSpaceFromLine);
   }
   // divide by 2 to get midpoint
-  const double kHorizontalMidpoint = (kPointA.x + kPointB.x) / 2; 
-  const double kVerticalMidpoint = (kPointA.y + kPointB.y) / 2;
+  const double kHorizontalMidpoint = (point_a.x + point_b.x) / 2; 
+  const double kVerticalMidpoint = (point_a.y + point_b.y) / 2;
   return glm::vec2(kHorizontalMidpoint, kVerticalMidpoint - kSpaceFromLine);
 }
 
-size_t TuringMachineSimulatorHelper::GetIndexOfSquareOfTapeClicked(const 
-    glm::vec2 &kClickedPoint, const glm::vec2 &kTapeUpperCorner,
-    const glm::vec2 &kTapeLowerCorner) {
-  // users are only allowed to edit tape of size 8
+size_t TuringMachineSimulatorHelper::GetIndexOfSquareOfTapeClicked(
+    const glm::vec2 &clicked_point, size_t tape_length,
+    const glm::vec2 &tape_upper_corner, const glm::vec2 &tape_lower_corner) {
   // the size of the tape is returned when no squares were found to have been
   // clicked
-  const size_t kTapeSize = 8;
-  if (!IsPointInRectangle(kClickedPoint, ci::Rectf(kTapeUpperCorner, 
-      kTapeLowerCorner))) {
-    return kTapeSize; 
+  if (!IsPointInRectangle(clicked_point, ci::Rectf(tape_upper_corner,
+      tape_lower_corner))) {
+    return tape_length; 
   }
-  const double kTapePixelLength = kTapeLowerCorner.x - kTapeUpperCorner.x;
-  const double kSquareHorizontalSize = kTapePixelLength / kTapeSize;
-  glm::vec2 square_upper_corner = kTapeUpperCorner;
-  glm::vec2 square_lower_corner = glm::vec2(kTapeUpperCorner.x 
-      + kSquareHorizontalSize, kTapeLowerCorner.y);
+  const double kTapePixelLength = tape_lower_corner.x - tape_upper_corner.x;
+  const double kSquareHorizontalSize = kTapePixelLength / tape_length;
+  glm::vec2 square_upper_corner = tape_upper_corner;
+  glm::vec2 square_lower_corner = glm::vec2(tape_upper_corner.x
+      + kSquareHorizontalSize, tape_lower_corner.y);
   size_t index_of_square = 0;
-  while (index_of_square < 9) {
+  while (index_of_square < tape_length) {
     const ci::Rectf kSquare = ci::Rectf(square_upper_corner, square_lower_corner);
-    if (IsPointInRectangle(kClickedPoint, kSquare)) {
+    if (IsPointInRectangle(clicked_point, kSquare)) {
       return index_of_square;
     }
     index_of_square += 1;
     square_upper_corner.x = square_lower_corner.x;
     square_lower_corner.x = square_lower_corner.x + kSquareHorizontalSize;
   }
-  return kTapeSize;
+  return tape_length;
+}
+
+std::tuple<glm::vec2, glm::vec2, glm::vec2> TuringMachineSimulatorHelper
+    ::GetArrow(const glm::vec2 &point_a, const glm::vec2 &point_b) {
+  const double kHorizontalMidpoint = (point_a.x + point_b.x) / 2;
+  const double kVerticalMidpoint = (point_a.y + point_b.y) / 2;
+  const glm::vec2 kTipOfArrow = glm::vec2(kHorizontalMidpoint, 
+      kVerticalMidpoint);
+  
+  // Lines 81-97 adapted from:
+  // http://kapo-cpp.blogspot.com/2008/10/drawing-arrows-with-cairo.html
+  const double kArrowLineLength = 10;
+  const double kArrowInternalAngle = 20;
+  const double kArrowAngle = std::atan2(point_b.y - point_a.y, 
+      point_b.x - point_a.x) + M_PI;
+  
+  const double kFirstPointXValue = kTipOfArrow.x + kArrowLineLength
+      * std::cos(kArrowAngle - kArrowInternalAngle);
+  const double kFirstPointYValue = kTipOfArrow.y + kArrowLineLength 
+      * std::sin(kArrowAngle - kArrowInternalAngle);
+  const glm::vec2 kFirstPoint = glm::vec2(kFirstPointXValue, kFirstPointYValue);
+  
+  const double kThirdPointXValue = kTipOfArrow.x + kArrowLineLength 
+      * std::cos(kArrowAngle + kArrowInternalAngle);
+  const double kThirdPointYValue = kTipOfArrow.y + kArrowLineLength 
+      * std::sin(kArrowAngle + kArrowInternalAngle);
+  const glm::vec2 kThirdPoint = glm::vec2(kThirdPointXValue, 
+      kThirdPointYValue);
+  
+  return std::tuple<glm::vec2, glm::vec2, glm::vec2>(kFirstPoint, kTipOfArrow,
+      kThirdPoint);
 }
 
 } // namespace turingmachinesimulator

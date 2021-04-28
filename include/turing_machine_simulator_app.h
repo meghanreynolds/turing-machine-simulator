@@ -1,7 +1,7 @@
 #pragma once
 
-#include<algorithm>
-#include<string>
+#include <algorithm>
+#include <string>
 #include <vector>
 
 #include "cinder/app/App.h"
@@ -32,7 +32,7 @@ class TuringMachineSimulatorApp : public ci::app::App {
     
     /**
      * This method overrides the update function of a cinder app to update the
-     * turing machine simulation when the simulation is in progress
+     * turing machine simulation while the simulation is in progress
      */
     void update() override;
 
@@ -64,103 +64,97 @@ class TuringMachineSimulatorApp : public ci::app::App {
 
   private:
     /**
-     * This method draws the add arrow menu to the screen
-     * 
-     * NOTE: All magic numbers found in this method were found by experimenting
-     * for the most visually appealing appearance of the menu
-     */
-    void DrawAddArrowMenu() const;
-    
-    /**
-     * This method draws the clear button to the screen
-     */
-    void DrawClearButton() const;
-    
-    /**
-     * This method draws the simulate button to the screen
-     */
-     void DrawSimulateButton() const;
-    
-    /**
-     * This method draws an arrow on the screen for each user-defined direction
-     * 
-     * NOTE: this method is inside of this class to all users to update
-     * state locations even after defining a directions for that state
-     * 
-     * @param kDirection a Direction to draw an arrow for
-     */
-    void DrawArrow(const Direction &kDirection) const;
-    
-    /**
-     * This method draws the tape on the screen
-     */
-    void DrawTape() const;
-    
-    /**
-     * This method draws the reset tape button on the screen
-     */
-     void DrawResetTapeButton() const;
-     
-   /**
-    * This method draws the stop simulation button on the screen 
+    * This method takes in the location of the user's click and handles the 
+    * event if a box was clicked
+    * 
+    * @param click_location a vec2 representing where the user clicked
+    * @return a bool that is true if a box was clicked, false otherwise
     */
-    void DrawStopSimulationButton() const;
-     
-   /**
-    * This method displays the turing machine error message
-    */
-    void DisplayErrorMessage() const;
-     
-    /**
-     * This method takes in the location of the user's click and handles the 
-     * event if a box was clicked
-     * 
-     * @param kClickLocation a vec2 representing where the user clicked
-     * @return a bool that is true if a box was clicked, false otherwise
-     */
-    bool HandleClickedBox(const glm::vec2 &kClickLocation);
+    bool HandleClickedBox(const glm::vec2 &click_location);
 
     /**
      * This method takes in the location of the user's click and handles the 
      * event if a state was created
      * 
-     * @param kClickLocation a vec2 representing where the user clicked
+     * @param click_location a vec2 representing where the user clicked
      * @return a bool that is true if a new state was created
      */
-    bool HandleStateCreation(const glm::vec2 &kClickLocation);
-    
+    bool HandleStateCreation(const glm::vec2 &click_location);
+
     /**
      * This method takes in the location of the user's click and handles the 
      * event if the user is trying to delete a state
      * 
-     * @param kClickLocation a vec2 representing the location of the user's click
+     * @param click_location a vec2 representing the location of the user's click
      * @return a bool that is true if a state was deleted, false otherwise
      */
-    bool HandleStateDeletion(const glm::vec2 &kClickLocation);
-    
+    bool HandleStateDeletion(const glm::vec2 &click_location);
+
     /**
      * This method takes in a key event and updates the character on the tape
      * that is being edited accordingly
      * 
-     * @param kKeyEvent a KeyEvent representing the key the user pressed
+     * @param key_event a KeyEvent representing the key the user pressed
      */
-    void EditTapeCharacter(const ci::app::KeyEvent &kKeyEvent);
-    
+    void EditTapeCharacter(const ci::app::KeyEvent &key_event);
+
     /**
      * This method takes in a key event and updates the state whose name is
      * being edited's name accordingly
      * 
-     * @param kKeyEvent a KeyEvent representing the key the user pressed
+     * @param key_event a KeyEvent representing the key the user pressed
      */
-    void EditStateName(const ci::app::KeyEvent &kKeyEvent);
+    void EditStateName(const ci::app::KeyEvent &key_event);
 
     /**
      * This method takes in a key event and updates the add arrow input box that
      * is being edited's text accordingly
      * 
-     * @param kKeyEvent a KeyEvent representing the key the user pressed
+     * @param key_event a KeyEvent representing the key the user pressed
      */
-    void EditAddArrowInputBox(const ci::app::KeyEvent &kKeyEvent);
+    void EditAddArrowInputBox(const ci::app::KeyEvent &key_event);
+    
+    /**
+     * This method stops the simulation
+     */
+     void StopSimulation();
+     
+    /**
+     * This method draws the add arrow menu to the screen
+     */
+    void DrawAddArrowMenu() const;
+
+    /**
+     * This method draws an arrow on the screen for each user-defined direction
+     * 
+     * NOTE: this method is inside of this class and not the direction class to 
+     * allow users to update state locations even after defining directions 
+     * for that state
+     * 
+     * @param direction a Direction to draw an arrow for
+     */
+    void DrawArrow(const Direction &direction) const;
+
+    /**
+     * This method draws the tape on the screen
+     */
+    void DrawTape() const;
+
+    /**
+     * This method displays the turing machine error message
+     */
+    void DisplayErrorMessage() const;
+    
+    /**
+     * This method displays the given button with the given label and the 
+     * given color
+     * 
+     * @param button a Rectf representing the button to be drawn
+     * @param label a string representing the label for the button
+     * @param color a Color reprsenting the color of the button
+     */
+    void DrawButton(const ci::Rectf &button, const std::string &label, 
+        const ci::Color &color) const;
 
     /**
      * int storing the horizontal window size, must be at least 600 
@@ -171,12 +165,6 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * int storing the vertical window size, must be at least 600 
      */
     const int kVerticalWindowSize = 800;
-
-    /**
-     * int storing an id to assign each state created by the user (incremented 
-     * after the creation of each new state)
-     */
-    int state_id_ = 0;
 
     /**
      * vector storing all of the user-defined states
@@ -190,7 +178,7 @@ class TuringMachineSimulatorApp : public ci::app::App {
     
     /**
      * vector storing the characters on the tape (by default starts with 8
-     * blank characters)
+     * blank characters('-'))
      */
     std::vector<char> tape_ = {'-', '-', '-', '-', '-', '-', '-', '-'};
      
@@ -198,6 +186,12 @@ class TuringMachineSimulatorApp : public ci::app::App {
     * TuringMachine storing the user defined Turing Machine
     */
     TuringMachine turing_machine_ = TuringMachine();
+
+    /**
+     * int storing an id to assign each state created by the user (incremented 
+     * after the creation of each new state)
+     */
+    int state_id_ = 0;
     
     /**
      * bool that is true if a turing machine is being simulated
@@ -208,23 +202,35 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * size_t storing the index of the character the scanner is reading
      */
     size_t index_of_character_being_read_ = 0;
-    
+
     /**
-     * size_t storing the index of the character that is being edited
-     * This is 8 when there are no characters being edited
+     * Vector of strings storing:
+     * the read input at index 0, 
+     * the write input at index 1, 
+     * the shift input at index 2, 
+     * the state to move from's name at index 3,
+     * the state to move to's name at index 4
      */
-     size_t index_of_character_being_edited_ = 8;
-     
-     /**
-      * bool storing whether or not a tape character is being edited
-      */
-     bool editing_tape_character_ = false;
-     
+    std::vector<std::string> add_arrow_inputs_ = {"single char", "single char",
+        "L/R/N", "q5", "qh"};
+
     /**
      * State storing the state most recently clicked by the user, empty state if 
      * the user has not recently clicked a state
      */
     State clicked_state_ = State();
+
+    /**
+     * bool storing whether or not a tape character is being edited
+     */
+    bool editing_tape_character_ = false;
+    
+    /**
+     * size_t storing the index of the character that is being edited
+     * This is equal to the size of the tap when there are no characters being 
+     * edited
+     */
+     size_t index_of_character_being_edited_ = tape_.size();
     
     /**
      * bool storing whether or not a state name is currently being edited
@@ -238,31 +244,14 @@ class TuringMachineSimulatorApp : public ci::app::App {
     State state_being_modified_ = State();
     
     /**
-     * Vector of strings storing:
-     * the read input at index 0, 
-     * the write input at index 1, 
-     * the shift input at index 2, 
-     * the state to move from's name at index 3,
-     * the state to move to's name at index 4
-     */
-    std::vector<std::string> add_arrow_inputs_ = {"single char", "single char",
-        "L/R/N", "q5", "qh"};
-    
-    /**
      * size_t storing the index of the add arrow box input text to edit,
-     * value is 5 when no add arrow text is being edited
+     * value is size of add arrow inputs when no add arrow text is being edited
      */
-    size_t index_of_add_arrow_text_to_edit = 5;
-
-    /**
-     * Turing machine simulator helper object storing methods for use in the 
-     * UI Code
-     */
-    const TuringMachineSimulatorHelper kHelperMethods = 
-        TuringMachineSimulatorHelper();
+    size_t index_of_add_arrow_text_to_edit = add_arrow_inputs_.size();
+    
     
     // NOTE: All magic numbers found below were found by experimenting
-    // for the most visually appealing appearance of the menu
+    // for the best visual experience
     
     /**
      * int storing the x boundary for the menu

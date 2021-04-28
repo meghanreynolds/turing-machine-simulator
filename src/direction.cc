@@ -3,33 +3,39 @@
 namespace turingmachinesimulator {
 
 Direction::Direction(char read, char write, char move, 
-    const State &kStateToMoveFrom, const State &kStateToMoveTo) {
+    const State &state_to_move_from, const State &state_to_move_to) {
   read_ = read;
   write_ = write;
-  char kMoveChar = std::tolower(move);
-  if (kMoveChar == 'l' || kMoveChar == 'r' || kMoveChar == 'n') {
-    scanner_movement_ = kMoveChar;
+  
+  // validate scanner movement character (must be l/r/n)
+  char kScannerMovementChar = std::tolower(move);
+  if (kScannerMovementChar == 'l' || kScannerMovementChar == 'r' 
+      || kScannerMovementChar == 'n') {
+    scanner_movement_ = kScannerMovementChar;
   } else {
     // don't create non-empty direction object if scanner movement direction is
-    // wrong (not l, r, or n)
+    // wrong
     return;
   }
-  if (kStateToMoveFrom.IsEmpty() || kStateToMoveTo.IsEmpty() 
-      || kStateToMoveFrom.GetStateName() == "qh") {
-    // don't create non-empty direction object state to move from/to is empty or
-    // if state to move from is the halting state
+  
+  // validate state to move from/to
+  if (state_to_move_from.IsEmpty() || state_to_move_to.IsEmpty()
+      || state_to_move_from.GetStateName() == "qh") {
+    // don't create non-empty direction object if state to move from/to state is 
+    // empty or state to move from is the halting state
     return;
   }
-  state_to_move_to_ = kStateToMoveTo;
-  state_to_move_from_ = kStateToMoveFrom;
+  state_to_move_to_ = state_to_move_to;
+  state_to_move_from_ = state_to_move_from;
+  // if all variables are successfully initialized, then the direction is 
+  // non-empty
   is_empty_ = false;
-  return;
 }
 
-Direction::Direction(const std::vector<std::string> &kData, 
-    const std::vector<State> &kPossibleStates) {
+Direction::Direction(const std::vector<std::string> &data, 
+    const std::vector<State> &possible_states) {
   const size_t kExpectedNumStringInputs = 5;
-  if (kData.size() != kExpectedNumStringInputs) {
+  if (data.size() != kExpectedNumStringInputs) {
     // do not create a non-empty direction if given wrong number data strings
     return;
   }
@@ -37,17 +43,17 @@ Direction::Direction(const std::vector<std::string> &kData,
   // validate read and write directions
   const size_t kIndexOfReadInput = 0;
   const size_t kIndexOfWriteInput = 1;
-  const std::string kRead = kData[kIndexOfReadInput];
-  const std::string kWrite = kData[kIndexOfWriteInput];
+  const std::string kRead = data[kIndexOfReadInput];
+  const std::string kWrite = data[kIndexOfWriteInput];
   if (kRead.size() != 1 || kWrite.size() != 1) {
     // do not create a non-empty direction if given more/less than 1 char for 
-    // the read or write condition
+    // the read condition or character to write
     return;
   }
 
   // validate direction to move scanner
   const size_t kIndexOfScannerMovement = 2;
-  const std::string kScannerMovement = kData[kIndexOfScannerMovement];
+  const std::string kScannerMovement = data[kIndexOfScannerMovement];
   if (kScannerMovement.size() != 1) {
     // do not create a non-empty direction if given more/less than 1 char for
     // the scanner movement direction
@@ -63,19 +69,19 @@ Direction::Direction(const std::vector<std::string> &kData,
     return;
   }
 
-  // validate move from and move to states
+  // validate move from/to states
   const size_t kIndexOfMoveFromName = 3;
-  const std::string kMoveFromName = kData[kIndexOfMoveFromName];
+  const std::string kMoveFromName = data[kIndexOfMoveFromName];
   // do not create a non-empty direction if move from state is the halting state
   // because it is impossible to change states from the halting state
   if (kMoveFromName == "qh") {
     return;
   }
   const size_t kIndexOfMoveToName = 4;
-  const std::string kMoveToName = kData[kIndexOfMoveToName];
+  const std::string kMoveToName = data[kIndexOfMoveToName];
   State move_from_state = State();
   State move_to_state = State();
-  for (const State &kState : kPossibleStates) {
+  for (const State &kState : possible_states) {
     // NOTE: not in an else-if statement because a direction may keep the same 
     // state, in which case the move from and move to states would be the same
     if (kState.GetStateName() == kMoveFromName) {
@@ -125,32 +131,32 @@ State Direction::GetStateToMoveTo() const {
   return state_to_move_to_;
 }
 
-bool Direction::operator==(const Direction &kDirection) const {
-  if (read_ == kDirection.GetRead()) {
+bool Direction::operator==(const Direction &direction) const {
+  if (read_ == direction.GetRead()) {
     return true;
   }
   return false;
 }
 
-bool Direction::Equals(const Direction &kDirection) const {
-  if (kDirection.IsEmpty()) {
+bool Direction::Equals(const Direction &direction) const {
+  if (direction.IsEmpty()) {
     // if both directions are empty then they're equal, otherwise they're not
     return is_empty_;
   }
-  if (read_ == kDirection.GetRead() && write_ == kDirection.GetWrite() 
-      && scanner_movement_ == kDirection.GetScannerMovement() 
-      && state_to_move_from_.Equals(kDirection.GetStateToMoveFrom()) 
-      && state_to_move_to_.Equals(kDirection.GetStateToMoveTo())) {
+  if (read_ == direction.GetRead() && write_ == direction.GetWrite()
+      && scanner_movement_ == direction.GetScannerMovement()
+      && state_to_move_from_.Equals(direction.GetStateToMoveFrom())
+      && state_to_move_to_.Equals(direction.GetStateToMoveTo())) {
     return true;
   }
   return false;
 }
 
 std::string Direction::ToString() const {
-  std::stringstream direction_as_string;
-  direction_as_string << read_ << ", " << write_ << ", " 
+  std::stringstream direction_as_stringstream;
+  direction_as_stringstream << read_ << ", " << write_ << ", "
       << (char) std::toupper(scanner_movement_);
-  return direction_as_string.str();
+  return direction_as_stringstream.str();
 }
 
 } // namespace turingmachinesimulator

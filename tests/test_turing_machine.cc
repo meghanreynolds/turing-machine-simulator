@@ -26,21 +26,7 @@ TEST_CASE("Test Turing Machine Creation") {
     const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections, 
         kTape);
     REQUIRE(kTuringMachine.IsEmpty());
-    REQUIRE(kTuringMachine.GetErrorMessage() == 
-        "Must Have Halting and Starting States");
-  }
-  
-  SECTION("Test No Halting State", "[initialization][empty][error]") {
-    const std::vector<State> kStates = {kStartingState, kStateTwo};
-    const Direction kDirectionOne = Direction('0', '1', 'n',
-        kStartingState, kStateTwo);
-    const std::vector<Direction> kDirections = {kDirectionOne};
-    const std::vector<char> kTape = {};
-    const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections,
-        kTape);
-    REQUIRE(kTuringMachine.IsEmpty());
-    REQUIRE(kTuringMachine.GetErrorMessage() ==
-            "Must Have Halting and Starting States");
+    REQUIRE(kTuringMachine.GetErrorMessage() == "Must Have Starting State");
   }
   
   SECTION("Test No States", "[initialization][empty][error]") {
@@ -52,24 +38,7 @@ TEST_CASE("Test Turing Machine Creation") {
     const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections,
         kTape);
     REQUIRE(kTuringMachine.IsEmpty());
-    REQUIRE(kTuringMachine.GetErrorMessage() ==
-            "Must Have Halting and Starting States");
-  }
-  
-  SECTION("Test States With Same Name", "[initialization][empty][error]") {
-    const State kSecondStateTwo = State(3, "q2",
-        glm::vec2(1, 1), 5);
-    const std::vector<State> kStates = {kStartingState, kStateTwo, 
-        kSecondStateTwo, kHaltingState};
-    const Direction kDirectionOne = Direction('0', '1', 'n',
-        kStartingState, kStateTwo);
-    const std::vector<Direction> kDirections = {kDirectionOne};
-    const std::vector<char> kTape = {};
-    const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections,
-        kTape);
-    REQUIRE(kTuringMachine.IsEmpty());
-    REQUIRE(kTuringMachine.GetErrorMessage() ==
-        "Cannot Have States With The Same Name");
+    REQUIRE(kTuringMachine.GetErrorMessage() == "Must Have Starting State");
   }
   
   SECTION("Test 2 Directions From State With Same Read Condition",
@@ -98,14 +67,15 @@ TEST_CASE("Test Turing Machine Creation") {
     const std::vector<char> kTape = {};
     const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections,
             kTape);
+    
     // check turing machine is not empty and has no errors
     REQUIRE(kTuringMachine.IsEmpty() == false);
-    REQUIRE(kTuringMachine.GetErrorMessage() == "");
+    REQUIRE(kTuringMachine.GetErrorMessage().empty());
     
     // check the tape is correctly initialized
     REQUIRE(kTuringMachine.GetTape() == std::vector<char>({'-'}));
-    
-    // check starting state is correctly initialized
+
+    // check that the current state is correctly initialized
     REQUIRE(kTuringMachine.GetCurrentState().Equals(kStartingState));
     const std::vector<State> kTuringMachineHaltingStates = 
         kTuringMachine.GetHaltingStates();
@@ -153,6 +123,7 @@ TEST_CASE("Test Turing Machine Creation") {
     const std::vector<char> kTape = {1, 0, 1, 1};
     const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections,
         kTape);
+    
     // check turing machine is not empty and has no errors
     REQUIRE(kTuringMachine.IsEmpty() == false);
     REQUIRE(kTuringMachine.GetErrorMessage() == "");
@@ -160,7 +131,7 @@ TEST_CASE("Test Turing Machine Creation") {
     // check the tape is correctly initialized
     REQUIRE(kTuringMachine.GetTape() == kTape);
 
-    // check starting state is correctly initialized
+    // check that the current state is correctly initialized
     REQUIRE(kTuringMachine.GetCurrentState().Equals(kStartingState));
     const std::vector<State> kTuringMachineHaltingStates =
         kTuringMachine.GetHaltingStates();
@@ -206,14 +177,23 @@ TEST_CASE("Test Turing Machine Creation") {
     const std::vector<char> kTape = {'-'};
     const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections, 
         kTape);
+    
+    // check that the turing machine isn't empty and that it doesn't have errors
     REQUIRE(kTuringMachine.IsEmpty() == false);
     REQUIRE(kTuringMachine.GetErrorMessage() == "");
+    
+    // check that the current state is correctly initialized
     REQUIRE(kTuringMachine.GetCurrentState().Equals(kStartingState));
+    
+    // check that the tape is correctly initialized
     REQUIRE(kTuringMachine.GetTape() == kTape);
-    const std::vector<State> kHaltingStates = 
-        kTuringMachine.GetHaltingStates();
+    
+    // check that the halting states are correctly initialized
+    const std::vector<State> kHaltingStates = kTuringMachine.GetHaltingStates();
     REQUIRE(kHaltingStates.size() == 1);
     REQUIRE(kHaltingStates.at(0).Equals(kHaltingState));
+    
+    // check that the directions by state map is empty
     REQUIRE(kTuringMachine.GetDirectionsByStateMap().empty());
   }
 }
@@ -313,12 +293,14 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
     TuringMachine turing_machine = TuringMachine(kStates, kDirections,
         kTape);
     turing_machine.Update();
+    
     // test machine halts and updates properly
     REQUIRE(turing_machine.IsHalted() == false);
     const std::vector<char> kExpectedTape = {'-','1', '-'};
     REQUIRE(turing_machine.GetTape() == kExpectedTape);
     REQUIRE(turing_machine.GetIndexOfScanner() == 0);
     REQUIRE(turing_machine.GetCurrentState().Equals(kStateTwo));
+    
     // test machine does not do anything after halting
     REQUIRE(turing_machine.IsHalted() == false);
     REQUIRE(turing_machine.GetTape() == kExpectedTape);
@@ -375,6 +357,7 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
     const std::vector<char> kTape = {'0', '-'};
     TuringMachine turing_machine = TuringMachine(kStates, kDirections,
         kTape);
+    
     // test first update
     turing_machine.Update();
     REQUIRE(turing_machine.IsHalted() == false);

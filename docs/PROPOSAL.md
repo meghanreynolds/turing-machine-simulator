@@ -81,7 +81,7 @@ The simulation will follow the following conventions and assumptions:
   - [X] Update the symbols on the tape according to the entered rules
 
 **Week 3**
-- [ ] Finish up Week 2
+- [X] Finish up Week 2
 - [ ] Return the Complete Configuration of the Turing Machine for the given tape
 
 **Stretch Goals**
@@ -90,6 +90,8 @@ The simulation will follow the following conventions and assumptions:
 - [ ] Visually support having multiple arrows between the same states
 - [ ] Let users pick where on the tape the scanner starts
 - [ ] Let users pick the default blank character
+- [ ] Let users click through the simulation step by step
+- [ ] Let users delete individual directions
 
 ## Figma Rendering ##
 ![Figma Rendering](FinalProjectFigmaRendering.png)

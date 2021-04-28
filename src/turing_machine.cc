@@ -2,44 +2,38 @@
 
 namespace turingmachinesimulator {
 
-TuringMachine::TuringMachine(const std::vector<State> &kStates,
-    const std::vector<Direction> &kDirections, const std::vector<char> &kTape) {
-  if (kTape.empty()) {
-    // if the tape is empty, set it to 1 blank character (same as empty tape)
-    tape_ = {'-'};
+TuringMachine::TuringMachine(const std::vector<State> &states,
+    const std::vector<Direction> &directions, const std::vector<char> &tape) {
+  // if the given tape is empty, set it to 1 blank character (same thing as 
+  // an empty tape)
+  if (tape.empty()) {
+    const char kBlankChar = '-';
+    tape_ = {kBlankChar};
   } else {
-    tape_ = kTape;
+    tape_ = tape;
   }
+  
   // set starting and halting states
-  std::vector<std::string> state_names;
-  for (const State &kState : kStates) {
+  for (const State &kState : states) {
     if (kState.GetStateName() == "q1") {
       if (!current_state_.IsEmpty()) {
         error_message_ = "Cannot Have More Than 1 Starting State";
         return;
       } else {
+        // the machine starts in the starting state
         current_state_ = kState;
       }
     } else if (kState.GetStateName() == "qh") {
       halting_states_.push_back(kState);
-    } else {
-      const std::string kStateName = kState.GetStateName();
-      if (std::find(state_names.begin(), state_names.end(), kStateName) 
-          != state_names.end()) {
-        error_message_ = "Cannot Have States With The Same Name";
-        return;
-      } else {
-        state_names.push_back(kStateName);
-      }
     }
   }
-  if (current_state_.IsEmpty() || halting_states_.empty()) {
-    error_message_ = "Must Have Halting and Starting States";
+  if (current_state_.IsEmpty()) {
+    error_message_ = "Must Have Starting State";
     return;
   }
   
   // put directions into the directions by state map
- for (const Direction &kDirection : kDirections) {
+ for (const Direction &kDirection : directions) {
     const State kStateToMoveFrom = kDirection.GetStateToMoveFrom();
     try {
       std::vector<Direction> kStateDirections = 
@@ -52,11 +46,14 @@ TuringMachine::TuringMachine(const std::vector<State> &kStates,
       }
     } catch (const std::exception &kException) {
       // Only here if the state to move from isn't in the map yet
-     // Don't need to do anything, just continue the code
+      // Don't need to do anything since the above code would not apply
+      // to such a situation anyway
     }
     directions_by_state_map_[kStateToMoveFrom].push_back(kDirection);
   }
- // if no errors were encountered, the turing machine is not empty
+ 
+ // if no errors were encountered in initializing the turing machine, then it is
+ // not empty
  is_empty_ = false;
 }
 
@@ -77,20 +74,20 @@ std::map<State, std::vector<Direction>> TuringMachine::GetDirectionsByStateMap()
   return directions_by_state_map_;
 }
 
+size_t TuringMachine::GetIndexOfScanner() const {
+  return index_of_scanner_;
+}
+
 std::string TuringMachine::GetErrorMessage() const {
   return error_message_;
 }
 
-bool TuringMachine::IsEmpty() const {
-  return is_empty_;
-}
-
-size_t TuringMachine::GetIndexOfScanner() const {
-  return  index_of_scanner_;
-}
-
 bool TuringMachine::IsHalted() const {
   return is_halted_;
+}
+
+bool TuringMachine::IsEmpty() const {
+  return is_empty_;
 }
 
 void TuringMachine::Update() {
@@ -98,38 +95,50 @@ void TuringMachine::Update() {
   try {
     possible_directions = directions_by_state_map_.at(current_state_);
   } catch (const std::exception &kException) {
-    return; // if there are no directions for the state, nothing to update
+    // if there are no directions for the state, then there is nothing to update
+    return;
   }
   for (const Direction &kDirection : possible_directions) {
     if (kDirection.GetRead() == tape_.at(index_of_scanner_)) {
       ExecuteDirection(kDirection);
-      break;
+      break; // once the direction is found and executed, nothing to search for
     }
   }
 }
 
-void TuringMachine::ExecuteDirection(const Direction &kDirection) {
-  // write the character to the tape
-  tape_.at(index_of_scanner_) = kDirection.GetWrite();
-  // move the scanner and update the tape size if it needs to be updated
-  const char kScannerMovement = kDirection.GetScannerMovement();
-  if (kScannerMovement == 'l') {
+void TuringMachine::ExecuteDirection(const Direction &direction) {
+  // write the character given by the direction to the tape
+  tape_.at(index_of_scanner_) = direction.GetWrite();
+  
+  // move the scanner 1 index left/right and update the tape size if needed
+  const char kScannerMovement = direction.GetScannerMovement();
+  const char kBlankCharacter = '-';
+  const char kLeftMovement = 'l';
+  if (kScannerMovement == kLeftMovement) {
+    // if the scanner is at the beginning of the tape, insert a blank character
+    // to index 0 in order to move left, otherwise move the scanner left (index
+    // -1)
     if (index_of_scanner_ == 0) {
-      tape_.insert(tape_.begin(), '-');
+      tape_.insert(tape_.begin(), kBlankCharacter);
     } else {
       index_of_scanner_ -= 1;
     }
   }
-  if (kScannerMovement == 'r') {
+  const char kRightMovement = 'r';
+  if (kScannerMovement == kRightMovement) {
     index_of_scanner_ += 1;
+    // if the updated scanner index is larger than the length of the tape,
+    // append a blank character to the tape in order to move right
     if (index_of_scanner_ >= tape_.size()) {
-      tape_.push_back('-');
+      tape_.push_back(kBlankCharacter);
     }
   }
-  // update the current state and halt the turing machine if state to move to
-  // is a halting state
-  current_state_ = kDirection.GetStateToMoveTo();
-  if (current_state_.GetStateName() == "qh") {
+  
+  // update the current state and halt the turing machine if current state is 
+  // now a halting state
+  current_state_ = direction.GetStateToMoveTo();
+  const std::string kHaltingStateName = "qh";
+  if (current_state_.GetStateName() == kHaltingStateName) {
     is_halted_ = true;
   }
 }
