@@ -19,10 +19,9 @@ Direction::Direction(char read, char write, char move,
   }
   
   // validate state to move from/to
-  if (state_to_move_from.IsEmpty() || state_to_move_to.IsEmpty()
-      || state_to_move_from.GetStateName() == "qh") {
+  if (state_to_move_from.IsEmpty() || state_to_move_to.IsEmpty()) {
     // don't create non-empty direction object if state to move from/to state is 
-    // empty or state to move from is the halting state
+    // empty
     return;
   }
   state_to_move_to_ = state_to_move_to;
@@ -72,11 +71,6 @@ Direction::Direction(const std::vector<std::string> &data,
   // validate move from/to states
   const size_t kIndexOfMoveFromName = 3;
   const std::string kMoveFromName = data[kIndexOfMoveFromName];
-  // do not create a non-empty direction if move from state is the halting state
-  // because it is impossible to change states from the halting state
-  if (kMoveFromName == "qh") {
-    return;
-  }
   const size_t kIndexOfMoveToName = 4;
   const std::string kMoveToName = data[kIndexOfMoveToName];
   State move_from_state = State();

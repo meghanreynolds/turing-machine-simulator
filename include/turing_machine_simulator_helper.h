@@ -130,9 +130,12 @@ class TuringMachineSimulatorHelper {
      *     diagram
      * @param click_location a vec2 representing the location to move the state
      *     to
+     * @param halting_state_names a vector of strings representing the potential 
+     *     names of halting states
      */
     static void UpdateStatePosition(State &clicked_state, std::vector<State> 
-        &states, const glm::vec2 &click_location);
+        &states, const glm::vec2 &click_location, const std::vector<std::string> 
+        &halting_state_names);
     
     /**
      * This method updates the tape character that is being edited according

@@ -27,9 +27,12 @@ class TuringMachine {
      * @param directions a vector of Directions representing the directions for
      *     the turing machine
      * @param tape a vector of chars representing the tape of the turing machine
+     * @param halting_state_names a vector of strings representing the possible
+     *     names for halting states
      */
     TuringMachine(const std::vector<State> &states,
-        const std::vector<Direction> &directions, const std::vector<char> &tape);
+        const std::vector<Direction> &directions, const std::vector<char> &tape,
+        const std::vector<std::string> &halting_state_names);
     
     State GetCurrentState() const;
     
@@ -108,6 +111,11 @@ class TuringMachine {
      * directions that move from the key state as the values
      */
     std::map<State, std::vector<Direction>> directions_by_state_map_;
+
+    /**
+     * a vector of strings storing the the names of halting states
+     */
+    std::vector<std::string> halting_state_names_;
 
     /**
      * size_ storing the index of the tape that the scanner is reading

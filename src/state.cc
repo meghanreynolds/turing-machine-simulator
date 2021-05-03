@@ -3,11 +3,13 @@
 namespace turingmachinesimulator {
 
 State::State(int id, const std::string &state_name, 
-    const glm::vec2 &state_location, double radius) 
+    const glm::vec2 &state_location, double radius, 
+    const std::vector<std::string> &possible_halting_state_names)
     : id_(id), 
       state_name_(state_name), 
       state_location_(state_location), 
-      radius_(radius) {
+      radius_(radius),
+      possible_halting_state_names_(possible_halting_state_names) {
   // states are only empty when created with the default constructor
   is_empty_ = false;
 }
@@ -60,11 +62,12 @@ bool State::IsStateCenterWithinGivenRadiusOfPoint(const glm::vec2 &point,
 
 void State::Display() const {
   const std::string kStartingStateName = "q1";
-  const std::string kHaltingStateName = "qh";
   if (state_name_ == kStartingStateName) {
     DrawStartingState();
-  } else if (state_name_ == kHaltingStateName) {
-    DrawHaltingState();
+  } else if (std::find(possible_halting_state_names_.begin(), 
+      possible_halting_state_names_.end(), state_name_) 
+      != possible_halting_state_names_.end()) {
+    DrawHaltingState(state_name_);
   } else {
     DrawNthState();
   }
@@ -94,7 +97,7 @@ void State::DrawNthState() const {
       ci::Color("black"));
 }
 
-void State::DrawHaltingState() const {
+void State::DrawHaltingState(const std::string &name) const {
   ci::gl::color(ci::Color("mediumspringgreen"));
   ci::gl::drawSolidCircle(state_location_, radius_);
   ci::gl::color(ci::Color("white"));
@@ -106,7 +109,7 @@ void State::DrawHaltingState() const {
   ci::gl::color(ci::Color("white"));
   ci::gl::drawSolidCircle(state_location_, (radius_ - 6));
   ci::gl::color(ci::Color("black"));
-  ci::gl::drawStringCentered("qh", state_location_,
+  ci::gl::drawStringCentered(name, state_location_,
       ci::Color("black"));
 }
 

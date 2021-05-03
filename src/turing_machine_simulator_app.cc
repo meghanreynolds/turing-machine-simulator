@@ -209,7 +209,7 @@ void TuringMachineSimulatorApp::mouseDrag(ci::app::MouseEvent event) {
   }
   
   TuringMachineSimulatorHelper::UpdateStatePosition(clicked_state_, 
-      states_, event.getPos());
+      states_, event.getPos(), halting_state_names_);
 }
 
 void TuringMachineSimulatorApp::keyDown(ci::app::KeyEvent event) {
@@ -308,7 +308,8 @@ bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
         ::IsPointInRectangle(click_location, kSimulateButton)) {
     // create a turing machine from user-defined states, directions, and tape
     // on simulate button click
-    turing_machine_ = TuringMachine(states_, directions_, tape_);
+    turing_machine_ = TuringMachine(states_, directions_, tape_, 
+        halting_state_names_);
     
     // if turing machine is empty, the creation of a turing machine was 
     // unsuccessful so we want to display the error message, otherwise, we
@@ -365,14 +366,15 @@ bool TuringMachineSimulatorApp::HandleStateCreation(const glm::vec2
       kRadiusOfStates)) {
     const std::string kStartingStateName = "q1";
     new_state = State(state_id_, kStartingStateName, click_location,
-        kRadiusOfStates);
+        kRadiusOfStates, halting_state_names_);
     new_state_was_created = true;
   }
 
   if (kExampleNthState.IsStateCenterWithinGivenRadiusOfPoint(click_location,
       kRadiusOfStates)) {
     const std::string kNthStateName = "qn";
-    new_state = State(state_id_, kNthStateName, click_location, kRadiusOfStates);
+    new_state = State(state_id_, kNthStateName, click_location, kRadiusOfStates, 
+        halting_state_names_);
     new_state_was_created = true;
   }
 
@@ -380,7 +382,7 @@ bool TuringMachineSimulatorApp::HandleStateCreation(const glm::vec2
       kRadiusOfStates)) {
     const std::string kHaltingStateName = "qh";
     new_state = State(state_id_, kHaltingStateName, click_location,
-        kRadiusOfStates);
+        kRadiusOfStates, halting_state_names_);
     new_state_was_created = true;
   }
 

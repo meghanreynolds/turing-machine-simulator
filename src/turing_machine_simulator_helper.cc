@@ -156,7 +156,8 @@ void TuringMachineSimulatorHelper::DeleteGivenState(const State &state_to_delete
 }
 
 void TuringMachineSimulatorHelper::UpdateStatePosition(State &clicked_state,
-    std::vector<State> &states, const glm::vec2 &click_location) {
+    std::vector<State> &states, const glm::vec2 &click_location, const 
+    std::vector<std::string> &halting_state_names) {
   // cannot do a for-each loop here because we need the index in states_
   for (size_t i = 0; i < states.size(); i++) {
     const State kCurrentState = states.at(i);
@@ -164,7 +165,7 @@ void TuringMachineSimulatorHelper::UpdateStatePosition(State &clicked_state,
     if (kCurrentState.Equals(clicked_state)) {
       const State kUpdatedState = State(kCurrentState.GetId(), 
           kCurrentState.GetStateName(), click_location, 
-          kCurrentState.GetRadius());
+          kCurrentState.GetRadius(), halting_state_names);
       states[i] = kUpdatedState;
       clicked_state = states[i];
       break; // once the state to update has been found, nothing to search for

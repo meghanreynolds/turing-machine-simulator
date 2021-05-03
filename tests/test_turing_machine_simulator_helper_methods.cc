@@ -283,10 +283,12 @@ TEST_CASE("Test Resets Tape Correctly") {
 }
 
 TEST_CASE("Test Adding Directions") {
+  const std::vector<std::string> kHaltingStateNames = {"qh", "qAccept",
+      "qReject"};
   const State kStartingState = State(1, "q1", 
-      glm::vec2(1, 1), 5);
+      glm::vec2(1, 1), 5, kHaltingStateNames);
   const State kHaltingState = State(5, "qh", 
-      glm::vec2(5, 6), 3);
+      glm::vec2(5, 6), 3, kHaltingStateNames);
   
   SECTION("Test Invalid Direction Inputs", "[add direction]") {
     std::vector<Direction> directions = {};
@@ -309,12 +311,14 @@ TEST_CASE("Test Adding Directions") {
 }
 
 TEST_CASE("Test State Deletion") {
+  const std::vector<std::string> kHaltingStateNames = {"qh", "qAccept",
+      "qReject"};
   const State kStartingState = State(1, "q1",
-      glm::vec2(1, 1), 5);
+      glm::vec2(1, 1), 5, kHaltingStateNames);
   const State kHaltingState = State(5, "qh",
-      glm::vec2(5, 6), 3);
+      glm::vec2(5, 6), 3, kHaltingStateNames);
   const State kNthState = State(2, "qn", 
-      glm::vec2(9, 8), 7);
+      glm::vec2(9, 8), 7, kHaltingStateNames);
   
   SECTION("Test No Directions Attached To Deleted State", "[state deletion]") {
     std::vector<State> states = {kStartingState, kHaltingState};
@@ -405,20 +409,22 @@ TEST_CASE("Test State Deletion") {
 }
 
 TEST_CASE("Test Updates State Positions") {
+  const std::vector<std::string> kHaltingStateNames = {"qh", "qAccept",
+      "qReject"};
   const State kStartingState = State(1, "q1",
-      glm::vec2(1, 1), 5);
-  const State kHaltingState = State(5, "qh",
-      glm::vec2(5, 6), 3);
+      glm::vec2(1, 1), 5, kHaltingStateNames);
+  const State kHaltingState = State(5, "qAccept",
+      glm::vec2(5, 6), 3, kHaltingStateNames);
   
   SECTION("Test Click Same As Current Position", "[state position]") {
     State clicked_state = State(2, "qn",
-        glm::vec2(9, 8), 7);
+        glm::vec2(9, 8), 7, kHaltingStateNames);
     std::vector<State> states = {kStartingState, kHaltingState, clicked_state};
     const glm::vec2 kUpdatedPosition = glm::vec2(9, 8);
     TuringMachineSimulatorHelper::UpdateStatePosition(clicked_state, states, 
-        kUpdatedPosition);
+        kUpdatedPosition, kHaltingStateNames);
     const State kExpectedClickedState = State(2, "qn",
-        glm::vec2(9, 8), 7);
+        glm::vec2(9, 8), 7, kHaltingStateNames);
     REQUIRE(clicked_state.Equals(kExpectedClickedState));
     REQUIRE(states.size() == 3);
     const std::vector<State> kExpectedStates = {kStartingState, kHaltingState, 
@@ -432,13 +438,13 @@ TEST_CASE("Test Updates State Positions") {
   
   SECTION("Test Click Is A New Position", "[state position]") {
     State clicked_state = State(2, "qn",
-        glm::vec2(9, 8), 7);
+        glm::vec2(9, 8), 7, kHaltingStateNames);
     std::vector<State> states = {kStartingState, clicked_state, kHaltingState};
     const glm::vec2 kUpdatedPosition = glm::vec2(0, 0);
     TuringMachineSimulatorHelper::UpdateStatePosition(clicked_state, states,
-        kUpdatedPosition);
+        kUpdatedPosition, kHaltingStateNames);
     const State kExpectedClickedState = State(2, "qn",
-        glm::vec2(0, 0), 7);
+        glm::vec2(0, 0), 7, kHaltingStateNames);
     REQUIRE(clicked_state.Equals(kExpectedClickedState));
     REQUIRE(states.size() == 3);
     const std::vector<State> kExpectedStates = {kStartingState, 
@@ -506,14 +512,16 @@ TEST_CASE("Test Tape Characters Are Updated Correctly") {
 }
 
 TEST_CASE("Test Updating State Names") {
+  const std::vector<std::string> kHaltingStateNames = {"qh", "qAccept",
+      "qReject"};
   const State kStartingState = State(1, "q1",
-      glm::vec2(1, 1), 5);
+      glm::vec2(1, 1), 5, kHaltingStateNames);
   const State kHaltingState = State(5, "qh",
-      glm::vec2(5, 6), 3);
+      glm::vec2(5, 6), 3, kHaltingStateNames);
   
   SECTION("Test Return Key Is Pressed", "[state name]") {
     State state_to_update = State(7, "qn", 
-        glm::vec2(1, 5), 7);
+        glm::vec2(1, 5), 7, kHaltingStateNames);
     std::vector<State> states = {kStartingState, state_to_update, kHaltingState};
     const Direction kDirectionOne = Direction('0', '1', 'L', 
         kStartingState, state_to_update);
@@ -527,7 +535,7 @@ TEST_CASE("Test Updating State Names") {
     REQUIRE(kIsBeingEdited == false);
     // check that the state names are as expected (unedited)
     const State kUpdatedState = State(7, "qn",
-        glm::vec2(1, 5), 7);
+        glm::vec2(1, 5), 7, kHaltingStateNames);
     REQUIRE(state_to_update.IsEmpty());
     REQUIRE(states.size() == 3);
     const std::vector<State> kExpectedStates = {kStartingState, kUpdatedState,
@@ -549,7 +557,7 @@ TEST_CASE("Test Updating State Names") {
   
   SECTION("Test Backspace Is Pressed", "[state name]") {
     State state_to_update = State(7, "qexample",
-        glm::vec2(1, 5), 7);
+        glm::vec2(1, 5), 7, kHaltingStateNames);
     std::vector<State> states = {kStartingState, state_to_update, kHaltingState};
     const Direction kDirectionOne = Direction('0', '1', 'L',
         state_to_update, state_to_update);
@@ -562,7 +570,7 @@ TEST_CASE("Test Updating State Names") {
     REQUIRE(kIsBeingEdited);
     // check that correct state name is updated
     const State kUpdatedState = State(7, "qexampl",
-        glm::vec2(1, 5), 7);
+        glm::vec2(1, 5), 7, kHaltingStateNames);
     REQUIRE(state_to_update.Equals(kUpdatedState));
     REQUIRE(states.size() == 3);
     const std::vector<State> kExpectedStates = {kStartingState, kUpdatedState,
@@ -586,7 +594,7 @@ TEST_CASE("Test Updating State Names") {
   
   SECTION("Test Backspace With State Named 'q'", "[state name]") {
     State state_to_update = State(7, "q",
-        glm::vec2(1, 5), 7);
+        glm::vec2(1, 5), 7, kHaltingStateNames);
     std::vector<State> states = {kStartingState, state_to_update, kHaltingState};
     const Direction kDirectionOne = Direction('0', '1', 'L',
         kStartingState, state_to_update);
@@ -599,7 +607,7 @@ TEST_CASE("Test Updating State Names") {
     REQUIRE(kIsBeingEdited);
     // check that the state name does not change
     const State kUpdatedState = State(7, "q",
-        glm::vec2(1, 5), 7);
+        glm::vec2(1, 5), 7, kHaltingStateNames);
     REQUIRE(state_to_update.Equals(kUpdatedState));
     REQUIRE(states.size() == 3);
     const std::vector<State> kExpectedStates = {kStartingState, kUpdatedState,
@@ -623,7 +631,7 @@ TEST_CASE("Test Updating State Names") {
   
   SECTION("Test Number Is Typed", "[state name]") {
     State state_to_update = State(7, "q2",
-        glm::vec2(1, 5), 7);
+        glm::vec2(1, 5), 7, kHaltingStateNames);
     std::vector<State> states = {kStartingState, state_to_update, kHaltingState};
     const Direction kDirectionOne = Direction('0', '1', 'L',
         state_to_update, kStartingState);
@@ -635,7 +643,7 @@ TEST_CASE("Test Updating State Names") {
     REQUIRE(kIsBeingEdited);
     // check that the correct state name is updated
     const State kUpdatedState = State(7, "q23",
-        glm::vec2(1, 5), 7);
+        glm::vec2(1, 5), 7, kHaltingStateNames);
     REQUIRE(state_to_update.Equals(kUpdatedState));
     REQUIRE(states.size() == 3);
     const std::vector<State> kExpectedStates = {kStartingState, kUpdatedState,
@@ -659,7 +667,7 @@ TEST_CASE("Test Updating State Names") {
   
   SECTION("Test Letter Is Typed", "[state name]") {
     State state_to_update = State(7, "q1",
-        glm::vec2(1, 5), 7);
+        glm::vec2(1, 5), 7, kHaltingStateNames);
     std::vector<State> states = {kStartingState, state_to_update, kHaltingState};
     const Direction kDirectionOne = Direction('0', '1', 'L',
         state_to_update, kStartingState);
@@ -672,7 +680,7 @@ TEST_CASE("Test Updating State Names") {
     REQUIRE(kIsBeingEdited);
     // check that the correct state name is updated
     const State kUpdatedState = State(7, "q1a",
-        glm::vec2(1, 5), 7);
+        glm::vec2(1, 5), 7, kHaltingStateNames);
     REQUIRE(state_to_update.Equals(kUpdatedState));
     REQUIRE(states.size() == 3);
     const std::vector<State> kExpectedStates = {kStartingState, kUpdatedState,
@@ -703,7 +711,7 @@ TEST_CASE("Test Updating State Names") {
   
   SECTION("Test Special Character Is Typed", "[state name]") {
     State state_to_update = State(7, "qh",
-        glm::vec2(1, 5), 7);
+        glm::vec2(1, 5), 7, kHaltingStateNames);
     std::vector<State> states = {kStartingState, state_to_update, kHaltingState};
     std::vector<Direction> directions = {};
     const bool kIsBeingEdited = TuringMachineSimulatorHelper::UpdateStateName
@@ -713,7 +721,7 @@ TEST_CASE("Test Updating State Names") {
     REQUIRE(kIsBeingEdited);
     // check that the correct state name is updated
     const State kUpdatedState = State(7, "qh?",
-        glm::vec2(1, 5), 7);
+        glm::vec2(1, 5), 7, kHaltingStateNames);
     REQUIRE(state_to_update.Equals(kUpdatedState));
     REQUIRE(states.size() == 3);
     const std::vector<State> kExpectedStates = {kStartingState, kUpdatedState,

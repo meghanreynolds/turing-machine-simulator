@@ -56,7 +56,7 @@ rules entered in via the state diagram, moving the scanner along the tape as a T
 The notation that will be used in this simulation is as follows:
 - **q<sub>1</sub>:** the starting state
 - **q<sub>n</sub>:** the nth state
-- **q<sub>h</sub>:** the halting state
+- **q<sub>h</sub>, q<sub>Accept</sub>, q<sub>Reject</sub>:** the halting states
 - **L:** move the scanner 1 square to the left
 - **R:** move the scanner 1 square to the right
 - **N:** do not move the scanner

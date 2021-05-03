@@ -12,12 +12,14 @@ using namespace turingmachinesimulator;
  * Configuration Is Produced Correctly For Markdown Files
  */
 TEST_CASE("Test Turing Machine Creation") {
+  const std::vector<std::string> kHaltingStateNames = {"qh", "qAccept",
+      "qReject"};
   const State kStartingState = State(1, "q1", 
-      glm::vec2(1, 1), 5);
+      glm::vec2(1, 1), 5, kHaltingStateNames);
   const State kStateTwo = State(2, "q2", 
-      glm::vec2(0, 0), 6);
+      glm::vec2(0, 0), 6, kHaltingStateNames);
   const State kHaltingState = State(5, "qh", 
-      glm::vec2(5, 6), 3);
+      glm::vec2(5, 6), 3, kHaltingStateNames);
   
   SECTION("Test No Starting State", "[initialization][empty][error]") {
     const std::vector<State> kStates = {kStateTwo, kHaltingState};
@@ -26,21 +28,21 @@ TEST_CASE("Test Turing Machine Creation") {
     const std::vector<Direction> kDirections = {kDirectionOne};
     const std::vector<char> kTape = {};
     const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections, 
-        kTape);
+        kTape, kHaltingStateNames);
     REQUIRE(kTuringMachine.IsEmpty());
     REQUIRE(kTuringMachine.GetErrorMessage() == "Must Have Starting State");
   }
   
   SECTION("Test Multiple Starting States", "[initialization][empty][error]") {
     const State kSecondStartState = State(2, "q1", 
-        glm::vec2(9, 10), 6);
+        glm::vec2(9, 10), 6, kHaltingStateNames);
     const std::vector<State> kStates = {kStartingState, kSecondStartState};
     const Direction kDirectionOne = Direction('0', '1', 'n',
         kStartingState, kStartingState);
     const std::vector<Direction> kDirections = {kDirectionOne};
     const std::vector<char> kTape = {};
     const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections,
-        kTape);
+        kTape, kHaltingStateNames);
     REQUIRE(kTuringMachine.IsEmpty());
     REQUIRE(kTuringMachine.GetErrorMessage()
         == "Cannot Have More Than 1 Starting State");
@@ -53,7 +55,7 @@ TEST_CASE("Test Turing Machine Creation") {
     const std::vector<Direction> kDirections = {kDirectionOne};
     const std::vector<char> kTape = {};
     const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections,
-        kTape);
+        kTape, kHaltingStateNames);
     REQUIRE(kTuringMachine.IsEmpty());
     REQUIRE(kTuringMachine.GetErrorMessage() == "Must Have Starting State");
   }
@@ -68,10 +70,11 @@ TEST_CASE("Test Turing Machine Creation") {
     const std::vector<Direction> kDirections = {kDirectionOne, kDirectionTwo};
     const std::vector<char> kTape = {};
     const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections,
-        kTape);
+        kTape, kHaltingStateNames);
     REQUIRE(kTuringMachine.IsEmpty());
     REQUIRE(kTuringMachine.GetErrorMessage() ==
-        "Must Not Have 2 Directions With Same Read Condition From The Same State");
+        "Must Not Have 2 Directions With Same Read Condition From The Same "
+        "State");
   }
   
   SECTION("Test Correct Inputs", "[initialization][empty][direction map]") {
@@ -83,7 +86,7 @@ TEST_CASE("Test Turing Machine Creation") {
     const std::vector<Direction> kDirections = {kDirectionOne, kDirectionTwo};
     const std::vector<char> kTape = {};
     const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections,
-            kTape);
+            kTape, kHaltingStateNames);
     
     // check turing machine is not empty and has no errors
     REQUIRE(kTuringMachine.IsEmpty() == false);
@@ -128,10 +131,12 @@ TEST_CASE("Test Turing Machine Creation") {
   
   SECTION("Test Multiple Halting States", "[initialization][empty]"
       "[direction map][halting states]") {
-    const State kSecondHaltingState = State(7, "qh", 
-        glm::vec2(5, 6), 9);
+    const State kSecondHaltingState = State(7, "qAccept", 
+        glm::vec2(5, 6), 9, kHaltingStateNames);
+    const State kThirdHaltingState = State(10, "qReject", 
+        glm::vec2(17, 9), 5, kHaltingStateNames);
     const std::vector<State> kStates = {kStartingState, kStateTwo,
-        kHaltingState, kSecondHaltingState};
+        kHaltingState, kSecondHaltingState, kThirdHaltingState};
     const Direction kDirectionOne = Direction('0', '1', 'n',
         kStartingState, kStateTwo);
     const Direction kDirectionTwo = Direction('1', '1', 'n',
@@ -139,7 +144,7 @@ TEST_CASE("Test Turing Machine Creation") {
     const std::vector<Direction> kDirections = {kDirectionOne, kDirectionTwo};
     const std::vector<char> kTape = {1, 0, 1, 1};
     const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections,
-        kTape);
+        kTape, kHaltingStateNames);
     
     // check turing machine is not empty and has no errors
     REQUIRE(kTuringMachine.IsEmpty() == false);
@@ -154,9 +159,10 @@ TEST_CASE("Test Turing Machine Creation") {
         kTuringMachine.GetHaltingStates();
 
     // check halting states are correctly initialized
-    REQUIRE(kTuringMachineHaltingStates.size() == 2);
+    REQUIRE(kTuringMachineHaltingStates.size() == 3);
     REQUIRE(kTuringMachineHaltingStates.at(0).Equals(kHaltingState));
     REQUIRE(kTuringMachineHaltingStates.at(1).Equals(kSecondHaltingState));
+    REQUIRE(kTuringMachineHaltingStates.at(2).Equals(kThirdHaltingState));
     
     // check directions by states map is created correctly
     std::map<State, std::vector<Direction>> expected_directions_by_state_map;
@@ -193,7 +199,7 @@ TEST_CASE("Test Turing Machine Creation") {
     const std::vector<Direction> kDirections = {};
     const std::vector<char> kTape = {'-'};
     const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections, 
-        kTape);
+        kTape, kHaltingStateNames);
     
     // check that the turing machine isn't empty and that it doesn't have errors
     REQUIRE(kTuringMachine.IsEmpty() == false);
@@ -216,19 +222,21 @@ TEST_CASE("Test Turing Machine Creation") {
 }
 
 TEST_CASE("Test Turing Machine Correctly Updates") {
+  const std::vector<std::string> kHaltingStateNames = {"qh", "qAccept",
+      "qReject"};
   const State kStartingState = State(1, "q1",
-      glm::vec2(1, 1), 5);
+      glm::vec2(1, 1), 5, kHaltingStateNames);
   const State kStateTwo = State(2, "q2",
-      glm::vec2(0, 0), 6);
-  const State kHaltingState = State(5, "qh",
-      glm::vec2(5, 6), 3);
+      glm::vec2(0, 0), 6, kHaltingStateNames);
+  const State kHaltingState = State(5, "qReject",
+      glm::vec2(5, 6), 3, kHaltingStateNames);
   
   SECTION("Test Turing Machine Without Any Directions", "[update]") {
     const std::vector<State> kStates = {kStartingState, kStateTwo, kHaltingState};
     const std::vector<Direction> kDirections = {};
     const std::vector<char> kTape = {'-'};
     TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-        kTape);
+        kTape, kHaltingStateNames);
     turing_machine.Update();
     REQUIRE(turing_machine.IsHalted() == false);
     REQUIRE(turing_machine.GetTape() == kTape);
@@ -243,7 +251,7 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
     const std::vector<Direction> kDirections = {kDirectionOne};
     const std::vector<char> kTape = {'b', 'c', 'd'};
     TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-        kTape);
+        kTape, kHaltingStateNames);
     turing_machine.Update();
     REQUIRE(turing_machine.IsHalted() == false);
     REQUIRE(turing_machine.GetTape() == kTape);
@@ -256,12 +264,12 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
     const std::vector<State> kStates = {kStartingState, kStateTwo, kHaltingState};
     const Direction kDirectionOne = Direction('0', '1', 'r',
         kStartingState, kStateTwo);
-    const Direction kDirectionTwo = Direction('-', '1', 'L', kStateTwo, 
-        kStartingState);
+    const Direction kDirectionTwo = Direction('-', '1', 'L', 
+        kStateTwo, kStartingState);
     const std::vector<Direction> kDirections = {kDirectionOne, kDirectionTwo};
     const std::vector<char> kTape = {'0', '-'};
     TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-        kTape);
+        kTape, kHaltingStateNames);
     // need to do 2 updates for left movement to occur
     turing_machine.Update();
     turing_machine.Update();
@@ -280,7 +288,7 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
     const std::vector<Direction> kDirections = {kDirectionOne};
     const std::vector<char> kTape = {'0', '-'};
     TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-        kTape);
+        kTape, kHaltingStateNames);
     turing_machine.Update();
     REQUIRE(turing_machine.IsHalted() == false);
     const std::vector<char> kExpectedTape = {'1', '-'};
@@ -296,7 +304,7 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
     const std::vector<Direction> kDirections = {kDirectionOne};
     const std::vector<char> kTape = {'0', '-'};
     TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-        kTape);
+        kTape, kHaltingStateNames);
     turing_machine.Update();
     REQUIRE(turing_machine.IsHalted() == false);
     const std::vector<char> kExpectedTape = {'1', '-'};
@@ -312,7 +320,7 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
     const std::vector<Direction> kDirections = {kDirectionOne};
     const std::vector<char> kTape = {'0', '-'};
     TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-        kTape);
+        kTape, kHaltingStateNames);
     turing_machine.Update();
     REQUIRE(turing_machine.IsHalted() == true);
     const std::vector<char> kExpectedTape = {'1', '-'};
@@ -329,7 +337,7 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
     const std::vector<Direction> kDirections = {kDirectionOne};
     const std::vector<char> kTape = {'0', '-'};
     TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-        kTape);
+        kTape, kHaltingStateNames);
     turing_machine.Update();
     
     // test machine halts and updates properly
@@ -354,7 +362,7 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
     const std::vector<Direction> kDirections = {kDirectionOne};
     const std::vector<char> kTape = {'0'};
     TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-        kTape);
+        kTape, kHaltingStateNames);
     turing_machine.Update();
     REQUIRE(turing_machine.IsHalted() == false);
     const std::vector<char> kExpectedTape = {'1', '-'};
@@ -370,7 +378,7 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
     const std::vector<Direction> kDirections = {kDirectionOne};
     const std::vector<char> kTape = {'0', '-'};
     TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-        kTape);
+        kTape, kHaltingStateNames);
     turing_machine.Update();
     REQUIRE(turing_machine.IsHalted() == false);
     const std::vector<char> kExpectedTape = {'1', '-'};
@@ -394,7 +402,7 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
         kDirectionThree, kDirectionFour};
     const std::vector<char> kTape = {'0', '-'};
     TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-        kTape);
+        kTape, kHaltingStateNames);
     
     // test first update
     turing_machine.Update();
@@ -446,12 +454,14 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
 }
 
 TEST_CASE("Test Configuration Output For Console") {
+  const std::vector<std::string> kHaltingStateNames = {"qh", "qAccept",
+      "qReject"};
   const State kStartingState = State(1, "q1",
-      glm::vec2(1, 1), 5);
+      glm::vec2(1, 1), 5, kHaltingStateNames);
   const State kStateTwo = State(2, "q2",
-      glm::vec2(0, 0), 6);
-  const State kHaltingState = State(5, "qh",
-      glm::vec2(5, 6), 3);
+      glm::vec2(0, 0), 6, kHaltingStateNames);
+  const State kHaltingState = State(5, "qAccept",
+      glm::vec2(5, 6), 3, kHaltingStateNames);
   const std::vector<State> kStates = {kStartingState, kStateTwo, kHaltingState};
   const Direction kDirectionOne = Direction('0', '1', 'l',
       kStartingState, kStateTwo);
@@ -462,10 +472,10 @@ TEST_CASE("Test Configuration Output For Console") {
   const Direction kDirectionFour= Direction('-', '1', 'n',
       kStateTwo, kStartingState);
   const std::vector<Direction> kDirections = {kDirectionOne, kDirectionTwo,
-                                              kDirectionThree, kDirectionFour};
+      kDirectionThree, kDirectionFour};
   const std::vector<char> kTape = {'0', '-'};
   TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-      kTape);
+      kTape, kHaltingStateNames);
   
   SECTION("Test Initial Position", "[console configuration]") {
     const std::string kExpectedConfiguration = ";q10-";
@@ -511,19 +521,21 @@ TEST_CASE("Test Configuration Output For Console") {
     turing_machine.Update();
     turing_machine.Update();
     turing_machine.Update();
-    const std::string kExpectedConfiguration = ";111qh-";
+    const std::string kExpectedConfiguration = ";111qAccept-";
     REQUIRE(turing_machine.GetConfigurationForConsole() 
         == kExpectedConfiguration);
   }
 }
 
 TEST_CASE("Test Configuration Output For Markdown Files") {
+  const std::vector<std::string> kHaltingStateNames = {"qh", "qAccept",
+      "qReject"};
   const State kStartingState = State(1, "q1",
-      glm::vec2(1, 1), 5);
+      glm::vec2(1, 1), 5, kHaltingStateNames);
   const State kStateTwo = State(2, "q2",
-      glm::vec2(0, 0), 6);
+      glm::vec2(0, 0), 6, kHaltingStateNames);
   const State kHaltingState = State(5, "qh",
-      glm::vec2(5, 6), 3);
+      glm::vec2(5, 6), 3, kHaltingStateNames);
   const std::vector<State> kStates = {kStartingState, kStateTwo, kHaltingState};
   const Direction kDirectionOne = Direction('0', '1', 'l',
       kStartingState, kStateTwo);
@@ -534,10 +546,10 @@ TEST_CASE("Test Configuration Output For Markdown Files") {
   const Direction kDirectionFour= Direction('-', '1', 'n',
       kStateTwo, kStartingState);
   const std::vector<Direction> kDirections = {kDirectionOne, kDirectionTwo,
-                                              kDirectionThree, kDirectionFour};
+      kDirectionThree, kDirectionFour};
   const std::vector<char> kTape = {'0', '-'};
   TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-      kTape);
+      kTape, kHaltingStateNames);
 
   SECTION("Test Initial Position", "[markdown configuration]") {
     const std::string kExpectedConfiguration = ";q<sub>1</sub>0-";
@@ -591,14 +603,14 @@ TEST_CASE("Test Configuration Output For Markdown Files") {
   SECTION("Test Configuration Where State Name Is Just 'q'", 
       "[markdown configuration]") {
     const State kStateWithoutName = State(17, "q", 
-        glm::vec2(1, 1), 5);
+        glm::vec2(1, 1), 5, kHaltingStateNames);
     const Direction kDirectionFive = Direction('0', '1', 'l',
         kStartingState, kStateWithoutName);
     const std::vector<State> kNewStates = {kStartingState, kStateWithoutName};
     const std::vector<Direction> kNewDirections = {kDirectionFive};
     const std::vector<char> kNewTape = {'0'};
     TuringMachine new_turing_machine = TuringMachine(kNewStates, kNewDirections, 
-        kNewTape);
+        kNewTape, kHaltingStateNames);
     
     new_turing_machine.Update();
     const std::string kExpectedConfiguration = ";q<sub></sub>-1";

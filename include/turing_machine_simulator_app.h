@@ -188,6 +188,11 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * blank characters('-'))
      */
     std::vector<char> tape_ = {'-', '-', '-', '-', '-', '-', '-', '-'};
+    
+    /**
+     * NEEDS DOCS
+     */
+     std::vector<std::string> halting_state_names_ = {"qh", "qAccept", "qReject"};
      
    /**
     * TuringMachine storing the user defined Turing Machine
@@ -322,19 +327,19 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * State storing the example starting state
      */
     const State kExampleStartingState = State(-1, "q1", kLocationOfQ1,
-        kRadiusOfStates);
+        kRadiusOfStates, halting_state_names_);
 
     /**
      * State storing the example nth state 
      */
     const State kExampleNthState = State(-1, "qn", kLocationOfQn,
-        kRadiusOfStates);
+        kRadiusOfStates, halting_state_names_);
 
     /**
      * State storing the example halting state
      */
     const State kExampleHaltingState = State(-1, "qh", kLocationOfQh,
-        kRadiusOfStates);
+        kRadiusOfStates, halting_state_names_);
     
     /**
      * int storing the x boundary for the add arrow box

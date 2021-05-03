@@ -3,7 +3,8 @@
 namespace turingmachinesimulator {
 
 TuringMachine::TuringMachine(const std::vector<State> &states,
-    const std::vector<Direction> &directions, const std::vector<char> &tape) {
+    const std::vector<Direction> &directions, const std::vector<char> &tape,
+    const std::vector<std::string> &halting_state_names) {
   // if the given tape is empty, set it to 1 blank character (same thing as 
   // an empty tape)
   if (tape.empty()) {
@@ -23,7 +24,9 @@ TuringMachine::TuringMachine(const std::vector<State> &states,
         // the machine starts in the starting state
         current_state_ = kState;
       }
-    } else if (kState.GetStateName() == "qh") {
+    } else if (std::find(halting_state_names.begin(), 
+        halting_state_names.end(), kState.GetStateName()) 
+        != halting_state_names.end()) {
       halting_states_.push_back(kState);
     }
   }
@@ -53,8 +56,9 @@ TuringMachine::TuringMachine(const std::vector<State> &states,
   }
  
  // if no errors were encountered in initializing the turing machine, then it is
- // not empty
+ // not empty and initialize the halting state name list
  is_empty_ = false;
+ halting_state_names_ = halting_state_names;
 }
 
 State TuringMachine::GetCurrentState() const {
@@ -170,8 +174,9 @@ void TuringMachine::ExecuteDirection(const Direction &direction) {
   // update the current state and halt the turing machine if current state is 
   // now a halting state
   current_state_ = direction.GetStateToMoveTo();
-  const std::string kHaltingStateName = "qh";
-  if (current_state_.GetStateName() == kHaltingStateName) {
+  if (std::find(halting_state_names_.begin(), 
+      halting_state_names_.end(), current_state_.GetStateName()) 
+      != halting_state_names_.end()) {
     is_halted_ = true;
   }
 }

@@ -26,9 +26,12 @@ class State {
      *     the simulator app
      * @param radius a double representing the radius of the state in the 
      *     simulator app
+     * @param possible_halting_state_names a vector of strings representing the
+     *     possible names for halting states
      */
     State(int id, const std::string &state_name, const glm::vec2 &state_location, 
-        double radius);
+        double radius, const std::vector<std::string> 
+        &possible_hating_state_names);
 
     int GetId() const;
     
@@ -105,7 +108,7 @@ class State {
     /**
      * This method draws a halting state
      */
-    void DrawHaltingState() const;
+    void DrawHaltingState(const std::string &name) const;
     
     int id_; // an int storing the unique id of the state
     
@@ -127,6 +130,11 @@ class State {
      * (initialized with the default constructor)
      */
     bool is_empty_ = true;
+    
+    /**
+     * a vector storing the possible names for halting states
+     */
+    std::vector<std::string> possible_halting_state_names_;
 };
 
 } // namespace turingmachinesimulator
