@@ -31,6 +31,21 @@ TEST_CASE("Test Turing Machine Creation") {
     REQUIRE(kTuringMachine.GetErrorMessage() == "Must Have Starting State");
   }
   
+  SECTION("Test Multiple Starting States", "[initialization][empty][error]") {
+    const State kSecondStartState = State(2, "q1", 
+        glm::vec2(9, 10), 6);
+    const std::vector<State> kStates = {kStartingState, kSecondStartState};
+    const Direction kDirectionOne = Direction('0', '1', 'n',
+        kStartingState, kStartingState);
+    const std::vector<Direction> kDirections = {kDirectionOne};
+    const std::vector<char> kTape = {};
+    const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections,
+        kTape);
+    REQUIRE(kTuringMachine.IsEmpty());
+    REQUIRE(kTuringMachine.GetErrorMessage()
+        == "Cannot Have More Than 1 Starting State");
+  }
+  
   SECTION("Test No States", "[initialization][empty][error]") {
     const std::vector<State> kStates = {};
     const Direction kDirectionOne = Direction('0', '1', 'n',
@@ -232,6 +247,27 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
     turing_machine.Update();
     REQUIRE(turing_machine.IsHalted() == false);
     REQUIRE(turing_machine.GetTape() == kTape);
+    REQUIRE(turing_machine.GetIndexOfScanner() == 0);
+    REQUIRE(turing_machine.GetCurrentState().Equals(kStartingState));
+  }
+
+  SECTION("Test Turing Machine Correctly Follows Left Movement", "[update]"
+      "[left][right]") {
+    const std::vector<State> kStates = {kStartingState, kStateTwo, kHaltingState};
+    const Direction kDirectionOne = Direction('0', '1', 'r',
+        kStartingState, kStateTwo);
+    const Direction kDirectionTwo = Direction('-', '1', 'L', kStateTwo, 
+        kStartingState);
+    const std::vector<Direction> kDirections = {kDirectionOne, kDirectionTwo};
+    const std::vector<char> kTape = {'0', '-'};
+    TuringMachine turing_machine = TuringMachine(kStates, kDirections,
+        kTape);
+    // need to do 2 updates for left movement to occur
+    turing_machine.Update();
+    turing_machine.Update();
+    REQUIRE(turing_machine.IsHalted() == false);
+    const std::vector<char> kExpectedTape = {'1', '1'};
+    REQUIRE(turing_machine.GetTape() == kExpectedTape);
     REQUIRE(turing_machine.GetIndexOfScanner() == 0);
     REQUIRE(turing_machine.GetCurrentState().Equals(kStartingState));
   }

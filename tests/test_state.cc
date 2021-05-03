@@ -7,6 +7,7 @@ using namespace turingmachinesimulator;
 /**
  * Partitions Testing As Follows:
  * Correctly Marks State Objects As Empty/Non-empty
+ * Correctly Updates Position
  * Correctly Checks If A Point Is Within a Given Radius The State
  * Correctly Checks For Equality With Other States
  * Less Than Operator Functions Correctly
@@ -23,6 +24,22 @@ TEST_CASE("Test Correctly Marks Objects As Empty/Nonempty") {
     const State kState = State(1, "q1", 
         glm::vec2(0, 0), 4);
     REQUIRE(kState.IsEmpty() == false);
+  }
+}
+
+TEST_CASE("Test Correctly Updates Position") {
+  SECTION("Test Position Is The Same", "[update position]") {
+    State state = State(1, "q1",
+        glm::vec2(0, 0), 4);
+    state.SetStateLocation(glm::vec2(0, 0));
+    REQUIRE(state.GetStateLocation() == glm::vec2(0, 0));
+  }
+  
+  SECTION("Test Position Is Different", "[update position]") {
+    State state = State(1, "q1",
+        glm::vec2(0, 0), 4);
+    state.SetStateLocation(glm::vec2(10, 9));
+    REQUIRE(state.GetStateLocation() == glm::vec2(10, 9));
   }
 }
 
