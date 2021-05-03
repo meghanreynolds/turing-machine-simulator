@@ -155,17 +155,44 @@ class TuringMachineSimulatorHelper {
      * 
      * @param states a vector of States representing the states in the state
      *     diagram
+     * @param directions a vector of Directions representing the directions in
+     *     in the state diagram
      * @param state_being_modified a State representing the state to edit
      * @param typed_char a character representing the character the user typed
      * @param event_code an int representing the event code of of the key that
      *     the user entered
      * @return a bool that is true if the state name is still being edited
      */
-    static bool UpdateStateName(std::vector<State> &states, 
-        State &state_being_modified, char typed_char, int event_code);
+    static bool UpdateStateName(std::vector<State> &states,
+        std::vector<Direction> &directions, State &state_being_modified,
+        char typed_char, int event_code);
     
+    /**
+     * This method updates the add arrow input box at the given index according
+     * to the key that was pressed by the user
+     * 
+     * @param add_arrow_inputs a vector of string representing the add arrow 
+     *     box's inputs
+     * @param index_of_input_to_edit the index of the add arrow input to edit
+     * @param typed_char a character representing the character the user typed
+     * @param event_code an int representing the event code of the key that the
+     *     user entered
+     * @return an int representing the the updated index being edited
+     */
     static int UpdateAddArrowInputs(std::vector<std::string> &add_arrow_inputs, 
         int index_of_input_to_edit, char typed_char, int event_code);
+    
+    /**
+     * This method updates the given directions' move to/from states to match
+     * the given state if the move to/from state has the same id as the given 
+     * state
+     * 
+     * @param state a State representing the state to update directions with
+     * @param directions a vector of Directions representing the directions to
+     *     be updated
+     */
+    static void UpdateDirections(const State &state, std::vector<Direction> 
+        &directions);
 };
 
 } // namespace turingmachinesimulator

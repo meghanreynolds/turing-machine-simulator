@@ -19,6 +19,17 @@ using namespace turingmachinesimulator;
  * Correctly Updates State Name
  * Correctly Updates Add Arrow Input Boxes
  */
+
+static bool StateVariablesAreSame(const State &state, const State &state_two) {
+  if (state.GetId() == state_two.GetId()
+      && (state.GetStateName() == state_two.GetStateName())
+      && (state.GetStateLocation() == state_two.GetStateLocation())
+      && (state.GetRadius() == state_two.GetRadius())) {
+    return true;
+  }
+  return false;
+}
+
 TEST_CASE("Test Checks If Given Point Is In Given Rectangle") {
   SECTION("Test Point Is Not In Rectangle", "[point is in rectangle]") {
     const glm::vec2 kPoint = glm::vec2(15, 15);
@@ -348,11 +359,7 @@ TEST_CASE("Test State Deletion") {
     for (size_t i = 0; i < kExpectedStates.size(); i++) {
       const State kStateOutput = states.at(i);
       const State kExpectedState = kExpectedStates.at(i);
-      REQUIRE(kStateOutput.GetId() == kExpectedState.GetId());
-      REQUIRE(kStateOutput.GetStateName() == kExpectedState.GetStateName());
-      REQUIRE(kStateOutput.GetStateLocation() 
-          == kExpectedState.GetStateLocation());
-      REQUIRE(kStateOutput.GetRadius() == kExpectedState.GetRadius());
+      REQUIRE(StateVariablesAreSame(kStateOutput, kExpectedState));
     }
   }
   
@@ -369,11 +376,7 @@ TEST_CASE("Test State Deletion") {
     for (size_t i = 0; i < kExpectedStates.size(); i++) {
       const State kStateOutput = states.at(i);
       const State kExpectedState = kExpectedStates.at(i);
-      REQUIRE(kStateOutput.GetId() == kExpectedState.GetId());
-      REQUIRE(kStateOutput.GetStateName() == kExpectedState.GetStateName());
-      REQUIRE(kStateOutput.GetStateLocation()
-          == kExpectedState.GetStateLocation());
-      REQUIRE(kStateOutput.GetRadius() == kExpectedState.GetRadius());
+      REQUIRE(StateVariablesAreSame(kStateOutput, kExpectedState));
     }
   }
 
@@ -396,11 +399,7 @@ TEST_CASE("Test State Deletion") {
     for (size_t i = 0; i < kExpectedStates.size(); i++) {
       const State kStateOutput = states.at(i);
       const State kExpectedState = kExpectedStates.at(i);
-      REQUIRE(kStateOutput.GetId() == kExpectedState.GetId());
-      REQUIRE(kStateOutput.GetStateName() == kExpectedState.GetStateName());
-      REQUIRE(kStateOutput.GetStateLocation()
-          == kExpectedState.GetStateLocation());
-      REQUIRE(kStateOutput.GetRadius() == kExpectedState.GetRadius());
+      REQUIRE(StateVariablesAreSame(kStateOutput, kExpectedState));
     }
   }
 }
@@ -427,11 +426,7 @@ TEST_CASE("Test Updates State Positions") {
     for (size_t i = 0; i < kExpectedStates.size(); i++) {
       const State kStateOutput = states.at(i);
       const State kExpectedState = kExpectedStates.at(i);
-      REQUIRE(kStateOutput.GetId() == kExpectedState.GetId());
-      REQUIRE(kStateOutput.GetStateName() == kExpectedState.GetStateName());
-      REQUIRE(kStateOutput.GetStateLocation()
-              == kExpectedState.GetStateLocation());
-      REQUIRE(kStateOutput.GetRadius() == kExpectedState.GetRadius());
+      REQUIRE(StateVariablesAreSame(kStateOutput, kExpectedState));
     }
   }
   
@@ -451,11 +446,7 @@ TEST_CASE("Test Updates State Positions") {
     for (size_t i = 0; i < kExpectedStates.size(); i++) {
       const State kStateOutput = states.at(i);
       const State kExpectedState = kExpectedStates.at(i);
-      REQUIRE(kStateOutput.GetId() == kExpectedState.GetId());
-      REQUIRE(kStateOutput.GetStateName() == kExpectedState.GetStateName());
-      REQUIRE(kStateOutput.GetStateLocation()
-              == kExpectedState.GetStateLocation());
-      REQUIRE(kStateOutput.GetRadius() == kExpectedState.GetRadius());
+      REQUIRE(StateVariablesAreSame(kStateOutput, kExpectedState));
     }
   }
 }
@@ -524,10 +515,17 @@ TEST_CASE("Test Updating State Names") {
     State state_to_update = State(7, "qn", 
         glm::vec2(1, 5), 7);
     std::vector<State> states = {kStartingState, state_to_update, kHaltingState};
+    const Direction kDirectionOne = Direction('0', '1', 'L', 
+        kStartingState, state_to_update);
+    std::vector<Direction> directions = {kDirectionOne};
     const int kReturnCode = 13;
     const bool kIsBeingEdited = TuringMachineSimulatorHelper::UpdateStateName
-        (states, state_to_update, ' ', kReturnCode);
+        (states, directions, state_to_update, ' ', 
+         kReturnCode);
+    // check that the method correctly identifies the return code (no more 
+    // editing)
     REQUIRE(kIsBeingEdited == false);
+    // check that the state names are as expected (unedited)
     const State kUpdatedState = State(7, "qn",
         glm::vec2(1, 5), 7);
     REQUIRE(state_to_update.IsEmpty());
@@ -537,22 +535,32 @@ TEST_CASE("Test Updating State Names") {
     for (size_t i = 0; i < kExpectedStates.size(); i++) {
       const State kStateOutput = states.at(i);
       const State kExpectedState = kExpectedStates.at(i);
-      REQUIRE(kStateOutput.GetId() == kExpectedState.GetId());
-      REQUIRE(kStateOutput.GetStateName() == kExpectedState.GetStateName());
-      REQUIRE(kStateOutput.GetStateLocation()
-          == kExpectedState.GetStateLocation());
-      REQUIRE(kStateOutput.GetRadius() == kExpectedState.GetRadius());
+      REQUIRE(StateVariablesAreSame(kStateOutput, kExpectedState));
     }
+    // check that the directions are as expected (unedited)
+    REQUIRE(directions.size() == 1);
+    const Direction kUpdatedDirection = directions.at(0);
+    REQUIRE(kUpdatedDirection.Equals(kDirectionOne));
+    REQUIRE(StateVariablesAreSame(kUpdatedDirection.GetStateToMoveFrom(), 
+        kStartingState));
+    REQUIRE(StateVariablesAreSame(kUpdatedDirection.GetStateToMoveTo(), 
+        kUpdatedState));
   }
   
   SECTION("Test Backspace Is Pressed", "[state name]") {
     State state_to_update = State(7, "qexample",
         glm::vec2(1, 5), 7);
     std::vector<State> states = {kStartingState, state_to_update, kHaltingState};
+    const Direction kDirectionOne = Direction('0', '1', 'L',
+        state_to_update, state_to_update);
+    std::vector<Direction> directions = {kDirectionOne};
     const int kBackspaceCode = 8;
     const bool kIsBeingEdited = TuringMachineSimulatorHelper::UpdateStateName
-        (states, state_to_update, ' ', kBackspaceCode);
+        (states, directions, state_to_update, ' ', 
+         kBackspaceCode);
+
     REQUIRE(kIsBeingEdited);
+    // check that correct state name is updated
     const State kUpdatedState = State(7, "qexampl",
         glm::vec2(1, 5), 7);
     REQUIRE(state_to_update.Equals(kUpdatedState));
@@ -562,22 +570,34 @@ TEST_CASE("Test Updating State Names") {
     for (size_t i = 0; i < kExpectedStates.size(); i++) {
       const State kStateOutput = states.at(i);
       const State kExpectedState = kExpectedStates.at(i);
-      REQUIRE(kStateOutput.GetId() == kExpectedState.GetId());
-      REQUIRE(kStateOutput.GetStateName() == kExpectedState.GetStateName());
-      REQUIRE(kStateOutput.GetStateLocation()
-          == kExpectedState.GetStateLocation());
-      REQUIRE(kStateOutput.GetRadius() == kExpectedState.GetRadius());
+      REQUIRE(StateVariablesAreSame(kStateOutput, kExpectedState));
     }
+    // check that directions involving the edited state are updated correctly
+    REQUIRE(directions.size() == 1);
+    const Direction kExpectedDirection = Direction('0', '1', 
+        'L', kUpdatedState, kUpdatedState);
+    const Direction kUpdatedDirection = directions.at(0);
+    REQUIRE(kUpdatedDirection.Equals(kExpectedDirection));
+    REQUIRE(StateVariablesAreSame(kUpdatedDirection.GetStateToMoveFrom(),
+        kUpdatedState));
+    REQUIRE(StateVariablesAreSame(kUpdatedDirection.GetStateToMoveTo(),
+        kUpdatedState));
   }
   
   SECTION("Test Backspace With State Named 'q'", "[state name]") {
     State state_to_update = State(7, "q",
         glm::vec2(1, 5), 7);
     std::vector<State> states = {kStartingState, state_to_update, kHaltingState};
+    const Direction kDirectionOne = Direction('0', '1', 'L',
+        kStartingState, state_to_update);
+    std::vector<Direction> directions = {kDirectionOne};
     const int kBackspaceCode = 8;
     const bool kIsBeingEdited = TuringMachineSimulatorHelper::UpdateStateName
-        (states, state_to_update, ' ', kBackspaceCode);
+        (states, directions, state_to_update, ' ', 
+         kBackspaceCode);
+    
     REQUIRE(kIsBeingEdited);
+    // check that the state name does not change
     const State kUpdatedState = State(7, "q",
         glm::vec2(1, 5), 7);
     REQUIRE(state_to_update.Equals(kUpdatedState));
@@ -587,21 +607,33 @@ TEST_CASE("Test Updating State Names") {
     for (size_t i = 0; i < kExpectedStates.size(); i++) {
       const State kStateOutput = states.at(i);
       const State kExpectedState = kExpectedStates.at(i);
-      REQUIRE(kStateOutput.GetId() == kExpectedState.GetId());
-      REQUIRE(kStateOutput.GetStateName() == kExpectedState.GetStateName());
-      REQUIRE(kStateOutput.GetStateLocation()
-          == kExpectedState.GetStateLocation());
-      REQUIRE(kStateOutput.GetRadius() == kExpectedState.GetRadius());
+      REQUIRE(StateVariablesAreSame(kStateOutput, kExpectedState));
     }
+    // check that the directions are as expected (unedited)
+    REQUIRE(directions.size() == 1);
+    const Direction kExpectedDirection = Direction('0', '1', 
+        'L', kStartingState, kUpdatedState);
+    const Direction kUpdatedDirection = directions.at(0);
+    REQUIRE(kUpdatedDirection.Equals(kExpectedDirection));
+    REQUIRE(StateVariablesAreSame(kUpdatedDirection.GetStateToMoveFrom(),
+        kStartingState));
+    REQUIRE(StateVariablesAreSame(kUpdatedDirection.GetStateToMoveTo(),
+        kUpdatedState));
   }
   
   SECTION("Test Number Is Typed", "[state name]") {
     State state_to_update = State(7, "q2",
         glm::vec2(1, 5), 7);
     std::vector<State> states = {kStartingState, state_to_update, kHaltingState};
+    const Direction kDirectionOne = Direction('0', '1', 'L',
+        state_to_update, kStartingState);
+    std::vector<Direction> directions = {kDirectionOne};
     const bool kIsBeingEdited = TuringMachineSimulatorHelper::UpdateStateName
-        (states, state_to_update, '3', -1);
+        (states, directions, state_to_update, '3', 
+         -1);
+    
     REQUIRE(kIsBeingEdited);
+    // check that the correct state name is updated
     const State kUpdatedState = State(7, "q23",
         glm::vec2(1, 5), 7);
     REQUIRE(state_to_update.Equals(kUpdatedState));
@@ -611,21 +643,34 @@ TEST_CASE("Test Updating State Names") {
     for (size_t i = 0; i < kExpectedStates.size(); i++) {
       const State kStateOutput = states.at(i);
       const State kExpectedState = kExpectedStates.at(i);
-      REQUIRE(kStateOutput.GetId() == kExpectedState.GetId());
-      REQUIRE(kStateOutput.GetStateName() == kExpectedState.GetStateName());
-      REQUIRE(kStateOutput.GetStateLocation()
-          == kExpectedState.GetStateLocation());
-      REQUIRE(kStateOutput.GetRadius() == kExpectedState.GetRadius());
+      REQUIRE(StateVariablesAreSame(kStateOutput, kExpectedState));
     }
+    // check that directions involving the edited state are updated correctly
+    REQUIRE(directions.size() == 1);
+    const Direction kExpectedDirection = Direction('0', '1',
+        'L', kUpdatedState, kStartingState);
+    const Direction kUpdatedDirection = directions.at(0);
+    REQUIRE(kUpdatedDirection.Equals(kExpectedDirection));
+    REQUIRE(StateVariablesAreSame(kUpdatedDirection.GetStateToMoveFrom(),
+        kUpdatedState));
+    REQUIRE(StateVariablesAreSame(kUpdatedDirection.GetStateToMoveTo(),
+        kStartingState));
   }
   
   SECTION("Test Letter Is Typed", "[state name]") {
     State state_to_update = State(7, "q1",
         glm::vec2(1, 5), 7);
     std::vector<State> states = {kStartingState, state_to_update, kHaltingState};
+    const Direction kDirectionOne = Direction('0', '1', 'L',
+        state_to_update, kStartingState);
+    const Direction kDirectionTwo = Direction('1', '0', 'r', state_to_update, 
+        kHaltingState);
+    std::vector<Direction> directions = {kDirectionOne, kDirectionTwo};
     const bool kIsBeingEdited = TuringMachineSimulatorHelper::UpdateStateName
-        (states, state_to_update, 'a', -1);
+        (states, directions, state_to_update, 'a', -1);
+    
     REQUIRE(kIsBeingEdited);
+    // check that the correct state name is updated
     const State kUpdatedState = State(7, "q1a",
         glm::vec2(1, 5), 7);
     REQUIRE(state_to_update.Equals(kUpdatedState));
@@ -635,11 +680,24 @@ TEST_CASE("Test Updating State Names") {
     for (size_t i = 0; i < kExpectedStates.size(); i++) {
       const State kStateOutput = states.at(i);
       const State kExpectedState = kExpectedStates.at(i);
-      REQUIRE(kStateOutput.GetId() == kExpectedState.GetId());
-      REQUIRE(kStateOutput.GetStateName() == kExpectedState.GetStateName());
-      REQUIRE(kStateOutput.GetStateLocation()
-          == kExpectedState.GetStateLocation());
-      REQUIRE(kStateOutput.GetRadius() == kExpectedState.GetRadius());
+      REQUIRE(StateVariablesAreSame(kStateOutput, kExpectedState));
+    }
+    // check that directions involving the edited state are updated correctly
+    REQUIRE(directions.size() == 2);
+    const Direction kExpectedDirectionOne = Direction('0', '1',
+        'L', kUpdatedState, kStartingState);
+    const Direction kExpectedDirectionTwo = Direction('1', '0', 
+        'r', state_to_update, kHaltingState);
+    const std::vector<Direction> kExpectedDirections = {kExpectedDirectionOne,
+        kExpectedDirectionTwo};
+    for (size_t i = 0; i < kExpectedDirections.size(); i++) {
+      const Direction kDirectionOutput = directions.at(i);
+      const Direction kExpectedDirection = directions.at(i);
+      REQUIRE(kDirectionOutput.Equals(kExpectedDirection));
+      REQUIRE(StateVariablesAreSame(kDirectionOutput.GetStateToMoveFrom(),
+          kExpectedDirection.GetStateToMoveFrom()));
+      REQUIRE(StateVariablesAreSame(kDirectionOutput.GetStateToMoveTo(),
+          kExpectedDirection.GetStateToMoveTo()));
     }
   }
   
@@ -647,9 +705,13 @@ TEST_CASE("Test Updating State Names") {
     State state_to_update = State(7, "qh",
         glm::vec2(1, 5), 7);
     std::vector<State> states = {kStartingState, state_to_update, kHaltingState};
+    std::vector<Direction> directions = {};
     const bool kIsBeingEdited = TuringMachineSimulatorHelper::UpdateStateName
-        (states, state_to_update, '?', -1);
+        (states, directions, state_to_update, '?', 
+         -1);
+    
     REQUIRE(kIsBeingEdited);
+    // check that the correct state name is updated
     const State kUpdatedState = State(7, "qh?",
         glm::vec2(1, 5), 7);
     REQUIRE(state_to_update.Equals(kUpdatedState));
@@ -659,12 +721,10 @@ TEST_CASE("Test Updating State Names") {
     for (size_t i = 0; i < kExpectedStates.size(); i++) {
       const State kStateOutput = states.at(i);
       const State kExpectedState = kExpectedStates.at(i);
-      REQUIRE(kStateOutput.GetId() == kExpectedState.GetId());
-      REQUIRE(kStateOutput.GetStateName() == kExpectedState.GetStateName());
-      REQUIRE(kStateOutput.GetStateLocation()
-              == kExpectedState.GetStateLocation());
-      REQUIRE(kStateOutput.GetRadius() == kExpectedState.GetRadius());
+      REQUIRE(StateVariablesAreSame(kStateOutput, kExpectedState));
     }
+    // check that directions is still empty
+    REQUIRE(directions.empty());
   }
 }
 

@@ -193,7 +193,8 @@ int TuringMachineSimulatorHelper::UpdateTapeCharacter(std::vector<char> &tape,
 }
 
 bool TuringMachineSimulatorHelper::UpdateStateName(std::vector<State> &states,
-    State &state_being_modified, char typed_char, int event_code) {
+    std::vector<Direction> &directions, State &state_being_modified, 
+    char typed_char, int event_code) {
   // on return, stop editing the state name
   if (event_code == ci::app::KeyEvent::KEY_RETURN) {
     state_being_modified = State();
@@ -220,6 +221,7 @@ bool TuringMachineSimulatorHelper::UpdateStateName(std::vector<State> &states,
           kLastCharacterOfName);
       state_being_modified.SetStateName(kUpdatedName);
       states[kIndexOfStateBeingModified] = state_being_modified;
+      UpdateDirections(state_being_modified, directions);
     }
     return true;
   }
@@ -228,6 +230,7 @@ bool TuringMachineSimulatorHelper::UpdateStateName(std::vector<State> &states,
   // to the end of the state's name
   state_being_modified.SetStateName(kNameToEdit + typed_char);
   states[kIndexOfStateBeingModified] = state_being_modified;
+  UpdateDirections(state_being_modified, directions);
   return true;
 }
 
@@ -255,6 +258,24 @@ int TuringMachineSimulatorHelper::UpdateAddArrowInputs(std::vector<std::string>
   // the text that's being edited
   add_arrow_inputs[index_of_input_to_edit] = kTextToEdit + typed_char;
   return index_of_input_to_edit;
+}
+
+void TuringMachineSimulatorHelper::UpdateDirections(const State &state,
+    std::vector<Direction> &directions) {
+  // NOTE: Cannot be for-each loop because index is necessary
+  for (size_t i = 0; i < directions.size(); i++) {
+    Direction direction = directions.at(i);
+    // NOTE: Cannot be if-else statement because move from/to state can be the
+    // same state
+    if (direction.GetStateToMoveFrom().Equals(state)) {
+      direction.SetStateToMoveFrom(state);
+      directions[i] = direction;
+    }
+    if (direction.GetStateToMoveTo().Equals(state)) {
+      direction.SetStateToMoveTo(state);
+      directions[i] = direction;
+    }
+  }
 }
 
 } // namespace turingmachinesimulator

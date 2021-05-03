@@ -123,8 +123,16 @@ char Direction::GetScannerMovement() const {
   return scanner_movement_;
 }
 
+void Direction::SetStateToMoveFrom(const State &state_to_move_from) {
+  state_to_move_from_ = state_to_move_from;
+}
+
 State Direction::GetStateToMoveFrom() const {
   return state_to_move_from_;
+}
+
+void Direction::SetStateToMoveTo(const State &state_to_move_to) {
+  state_to_move_to_ = state_to_move_to;
 }
 
 State Direction::GetStateToMoveTo() const {

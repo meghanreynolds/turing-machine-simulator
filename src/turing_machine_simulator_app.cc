@@ -100,8 +100,7 @@ void TuringMachineSimulatorApp::update() {
     // scanner is moving
     ci::app::setFrameRate(1);
 
-    // this forces the first state to be drawn for the user to be able to see
-    // what is going on in every the simulation
+    // this forces the first state to be highlighted
     if (is_first_turn_of_simulation_) {
       is_first_turn_of_simulation_ = false;
       return;
@@ -235,7 +234,8 @@ void TuringMachineSimulatorApp::keyDown(ci::app::KeyEvent event) {
   // editing state name takes precedence to adding arrow
   if (editing_state_name_) {
     editing_state_name_ = TuringMachineSimulatorHelper::UpdateStateName
-        (states_, state_being_modified_, event.getChar(), event.getCode());
+        (states_, directions_, state_being_modified_, event.getChar(),
+         event.getCode());
     return;
   }
   

@@ -61,7 +61,11 @@ class Direction {
     
     char GetScannerMovement() const;
     
+    void SetStateToMoveFrom(const State &state_to_move_from);
+    
     State GetStateToMoveFrom() const;
+    
+    void SetStateToMoveTo(const State &state_to_move_to);
     
     State GetStateToMoveTo() const;
     
