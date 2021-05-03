@@ -57,8 +57,34 @@ void TuringMachineSimulatorApp::draw() {
     DrawArrow(kDirection);
   }
 
-  // display user-defined states
+  // display user-defined states and highlight the current state of the 
+  // simulation
   for (const State &kState : states_) {
+    // note: 10 was found to be the best size of the highlight ring by 
+    // experimenting for best visual experience
+    const int kSizeOfHighlightRing = 10;
+    if (simulation_is_in_progress_ 
+        && turing_machine_.GetCurrentState().Equals(kState)) {
+      ci::gl::color(ci::Color("yellow"));
+      ci::gl::drawSolidCircle(kState.GetStateLocation(), 
+          kState.GetRadius() + kSizeOfHighlightRing);
+      
+    } else if (halting_state_to_highlight_.Equals(kState) 
+        && !halting_state_to_highlight_.IsEmpty()) {
+      ci::gl::color(ci::Color("yellow"));
+      ci::gl::drawSolidCircle(kState.GetStateLocation(),
+          kState.GetRadius() + kSizeOfHighlightRing);
+      num_times_halting_state_higlighted_ += 1;
+      // note: 45 was found to be the best number of iterations for the halting
+      // state to be highlighted by experimenting for best visual experience
+      const int kMaxNumTimesHaltingStateHighlighted = 45;
+      if (num_times_halting_state_higlighted_ 
+          > kMaxNumTimesHaltingStateHighlighted) {
+        halting_state_to_highlight_ = State();
+        num_times_halting_state_higlighted_ = 0;
+      }
+    }
+    
     kState.Display();
   }
 
@@ -73,6 +99,13 @@ void TuringMachineSimulatorApp::update() {
     // significantly reduce frame rate to allow users to really see how the
     // scanner is moving
     ci::app::setFrameRate(1);
+
+    // this forces the first state to be drawn for the user to be able to see
+    // what is going on in every the simulation
+    if (is_first_turn_of_simulation_) {
+      is_first_turn_of_simulation_ = false;
+      return;
+    }
     
     // update the turing machine
     turing_machine_.Update();
@@ -91,6 +124,7 @@ void TuringMachineSimulatorApp::update() {
     tape_ = turing_machine_.GetTape();
     index_of_character_being_read_ = turing_machine_.GetIndexOfScanner();
     if (turing_machine_.IsHalted()) {
+      halting_state_to_highlight_ = turing_machine_.GetCurrentState();
       // NOTE: Line 95-99 must not be added to StopSimulation()
       if (!configuration_file.is_open()) {
         std::cout << '\n';
@@ -259,6 +293,9 @@ bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
     index_of_character_being_read_ = 0;
     simulation_is_in_progress_ = false;
     turing_machine_ = TuringMachine();
+    is_first_turn_of_simulation_ = true;
+    halting_state_to_highlight_ = State();
+    num_times_halting_state_higlighted_ = 0;
     state_id_ = 0;
     add_arrow_inputs_ = {"single char", "single char", "L/R/N", "q5", "qh"};
     index_of_add_arrow_text_to_edit = add_arrow_inputs_.size();
@@ -388,6 +425,7 @@ void TuringMachineSimulatorApp::StopSimulation() {
   std::ofstream configuration_file =
       std::ofstream(kPathToCompleteConfigurationFile, std::ios::app);
   simulation_is_in_progress_ = false;
+  is_first_turn_of_simulation_ = true;
   // resume normal frame rate from reduced frame rate so graphics aren't slow
   ci::app::setFrameRate(60);
   // the user will not likely want to continue editing these

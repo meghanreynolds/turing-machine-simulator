@@ -204,8 +204,24 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * int storing the number of simulations that have been run (regardless of
      * clears)
      */
-     int num_simulations_run_ = 0;
+    int num_simulations_run_ = 0;
+     
+     /**
+     * a boolean that is true if it is the simulation has just begun
+     */
+    bool is_first_turn_of_simulation_ = true;
+
+    /**
+     * a State that stores the halting state that the simulation ended on
+     */
+    State halting_state_to_highlight_ = State();
     
+    /**
+     * a size_t tracking the number of times the halting state has been 
+     * highlighted
+     */
+     size_t num_times_halting_state_higlighted_ = 0;
+     
     /**
      * bool that is true if a turing machine is being simulated
      */
