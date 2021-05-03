@@ -11,6 +11,13 @@ using namespace turingmachinesimulator;
  * Correctly Calculates Location Of Direction Text
  * Correctly Evaluates Index Of Square On Tape That Was Clicked
  * Correctly Creates Directional Arrow Given 2 Points Of a Line
+ * Correctly Resets The Tape
+ * Correctly Adds Directions
+ * Correctly Deletes States
+ * Correctly Updates State Positions
+ * Correctly Updates Tape Characters
+ * Correctly Updates State Name
+ * Correctly Updates Add Arrow Input Boxes
  */
 TEST_CASE("Test Checks If Given Point Is In Given Rectangle") {
   SECTION("Test Point Is Not In Rectangle", "[point is in rectangle]") {
@@ -229,5 +236,500 @@ TEST_CASE("Test Correctly Calculates Directional Arrow") {
     const glm::vec2 kPointThree = std::get<2>(kArrowPoints);
     REQUIRE(kPointThree.x == Approx(24.87049033));
     REQUIRE(kPointThree.y == Approx(25.74160727));
+  }
+}
+
+TEST_CASE("Test Resets Tape Correctly") {
+  const char kBlankCharacter = '-';
+  const std::vector<char> kExpectedTape = {kBlankCharacter, kBlankCharacter,
+      kBlankCharacter, kBlankCharacter, kBlankCharacter, kBlankCharacter, 
+      kBlankCharacter, kBlankCharacter};
+  
+  SECTION("Test Given An Empty Vector", "[reset tape]") {
+    std::vector<char> tape_to_reset = {};
+    TuringMachineSimulatorHelper::ResetTape(tape_to_reset);
+    REQUIRE(tape_to_reset == kExpectedTape);
+  }
+  
+  SECTION("Test Given A Vector With Less Than 8 Characters", "[reset tape]") {
+    std::vector<char> tape_to_reset = {'a', 'e', 'i', 'o', 'u', 'y', '-'};
+    TuringMachineSimulatorHelper::ResetTape(tape_to_reset);
+    REQUIRE(tape_to_reset == kExpectedTape);
+  }
+  
+  SECTION("Test Given A Vector With More THan 8 Characters", "[reset tape]") {
+    std::vector<char> tape_to_reset = {'1', '2', '3', '4', '5', '6', '7', '8', 
+        '9'};
+    TuringMachineSimulatorHelper::ResetTape(tape_to_reset);
+    REQUIRE(tape_to_reset == kExpectedTape);
+  }
+  
+  SECTION("Test Given A Vector of 8 Characters", "[reset tape]") {
+    std::vector<char> tape_to_reset = {'!', '@', '#', '$', '%', '^', '&', '*'};
+    TuringMachineSimulatorHelper::ResetTape(tape_to_reset);
+    REQUIRE(tape_to_reset == kExpectedTape);
+  }
+}
+
+TEST_CASE("Test Adding Directions") {
+  const State kStartingState = State(1, "q1", 
+      glm::vec2(1, 1), 5);
+  const State kHaltingState = State(5, "qh", 
+      glm::vec2(5, 6), 3);
+  
+  SECTION("Test Invalid Direction Inputs", "[add direction]") {
+    std::vector<Direction> directions = {};
+    const std::vector<State> kStates = {};
+    const std::vector<std::string> kInputs = {"a", "b", "l", "q1", "qh"};
+    TuringMachineSimulatorHelper::AddDirection(kInputs, directions, kStates);
+    REQUIRE(directions.empty());
+  }
+  
+  SECTION("Test Valid Inputs", "[add direction]") {
+    std::vector<Direction> directions = {};
+    const std::vector<State> kStates = {kStartingState, kHaltingState};
+    const std::vector<std::string> kInputs = {"a", "b", "l", "q1", "qh"};
+    TuringMachineSimulatorHelper::AddDirection(kInputs, directions, kStates);
+    REQUIRE(directions.size() == 1);
+    const Direction kExpectedDirection = Direction('a', 'b', 'l', 
+        kStartingState, kHaltingState);
+    REQUIRE(directions.at(0).Equals(kExpectedDirection));
+  }
+}
+
+TEST_CASE("Test State Deletion") {
+  const State kStartingState = State(1, "q1",
+      glm::vec2(1, 1), 5);
+  const State kHaltingState = State(5, "qh",
+      glm::vec2(5, 6), 3);
+  const State kNthState = State(2, "qn", 
+      glm::vec2(9, 8), 7);
+  
+  SECTION("Test No Directions Attached To Deleted State", "[state deletion]") {
+    std::vector<State> states = {kStartingState, kHaltingState};
+    std::vector<Direction> directions = {};
+    TuringMachineSimulatorHelper::DeleteGivenState(kStartingState, states, 
+        directions);
+    REQUIRE(directions.empty());
+    REQUIRE(states.size() == 1);
+    const State kStateOutput = states.at(0);
+    REQUIRE(kStateOutput.GetId() == 5);
+    REQUIRE(kStateOutput.GetStateName() == "qh");
+    REQUIRE(kStateOutput.GetStateLocation() == glm::vec2(5, 6));
+    REQUIRE(kStateOutput.GetRadius() == 3);
+  }
+  
+  SECTION("Test Has Direction Going From Deleted State", "[state deletion]") {
+    const Direction kDirection = Direction('0', '1', 'n',
+        kStartingState, kHaltingState);
+    std::vector<State> states = {kStartingState, kHaltingState};
+    std::vector<Direction> directions = {kDirection};
+    TuringMachineSimulatorHelper::DeleteGivenState(kStartingState, states,
+        directions);
+    REQUIRE(directions.empty());
+    REQUIRE(states.size() == 1);
+    const State kStateOutput = states.at(0);
+    REQUIRE(kStateOutput.GetId() == 5);
+    REQUIRE(kStateOutput.GetStateName() == "qh");
+    REQUIRE(kStateOutput.GetStateLocation() == glm::vec2(5, 6));
+    REQUIRE(kStateOutput.GetRadius() == 3);
+  }
+  
+  SECTION("Test Has Direction Going To Deleted State", "[state deletion]") {
+    const Direction kDirection = Direction('1', '0', 'r',
+        kNthState, kStartingState);
+    std::vector<State> states = {kStartingState, kHaltingState, kNthState};
+    std::vector<Direction> directions = {kDirection};
+    TuringMachineSimulatorHelper::DeleteGivenState(kStartingState, states,
+        directions);
+    REQUIRE(directions.empty());
+    REQUIRE(states.size() == 2);
+    const std::vector<State> kExpectedStates = {kHaltingState, kNthState};
+    for (size_t i = 0; i < kExpectedStates.size(); i++) {
+      const State kStateOutput = states.at(i);
+      const State kExpectedState = kExpectedStates.at(i);
+      REQUIRE(kStateOutput.GetId() == kExpectedState.GetId());
+      REQUIRE(kStateOutput.GetStateName() == kExpectedState.GetStateName());
+      REQUIRE(kStateOutput.GetStateLocation() 
+          == kExpectedState.GetStateLocation());
+      REQUIRE(kStateOutput.GetRadius() == kExpectedState.GetRadius());
+    }
+  }
+  
+  SECTION("Test Has Self-Loop To Deleted State", "[state deletion]") {
+    const Direction kDirection = Direction('1', '0', 'r',
+        kStartingState, kStartingState);
+    std::vector<State> states = {kStartingState, kHaltingState, kNthState};
+    std::vector<Direction> directions = {kDirection};
+    TuringMachineSimulatorHelper::DeleteGivenState(kStartingState, states,
+        directions);
+    REQUIRE(directions.empty());
+    REQUIRE(states.size() == 2);
+    const std::vector<State> kExpectedStates = {kHaltingState, kNthState};
+    for (size_t i = 0; i < kExpectedStates.size(); i++) {
+      const State kStateOutput = states.at(i);
+      const State kExpectedState = kExpectedStates.at(i);
+      REQUIRE(kStateOutput.GetId() == kExpectedState.GetId());
+      REQUIRE(kStateOutput.GetStateName() == kExpectedState.GetStateName());
+      REQUIRE(kStateOutput.GetStateLocation()
+          == kExpectedState.GetStateLocation());
+      REQUIRE(kStateOutput.GetRadius() == kExpectedState.GetRadius());
+    }
+  }
+
+  SECTION("Test Has Multiple Directions To Deleted State", "[state deletion]") {
+    const Direction kDirection = Direction('1', '0', 'r',
+        kStartingState, kStartingState);
+    const Direction kDirectionTwo = Direction('0', '1', 'l', 
+        kNthState, kHaltingState);
+    const Direction kDirectionThree = Direction('9', '8', 'r', 
+        kStartingState, kHaltingState);
+    std::vector<State> states = {kStartingState, kHaltingState, kNthState};
+    std::vector<Direction> directions = {kDirection, kDirectionTwo, 
+        kDirectionThree};
+    TuringMachineSimulatorHelper::DeleteGivenState(kStartingState, states,
+        directions);
+    REQUIRE(directions.size() == 1);
+    REQUIRE(directions.at(0).Equals(kDirectionTwo));
+    REQUIRE(states.size() == 2);
+    const std::vector<State> kExpectedStates = {kHaltingState, kNthState};
+    for (size_t i = 0; i < kExpectedStates.size(); i++) {
+      const State kStateOutput = states.at(i);
+      const State kExpectedState = kExpectedStates.at(i);
+      REQUIRE(kStateOutput.GetId() == kExpectedState.GetId());
+      REQUIRE(kStateOutput.GetStateName() == kExpectedState.GetStateName());
+      REQUIRE(kStateOutput.GetStateLocation()
+          == kExpectedState.GetStateLocation());
+      REQUIRE(kStateOutput.GetRadius() == kExpectedState.GetRadius());
+    }
+  }
+}
+
+TEST_CASE("Test Updates State Positions") {
+  const State kStartingState = State(1, "q1",
+      glm::vec2(1, 1), 5);
+  const State kHaltingState = State(5, "qh",
+      glm::vec2(5, 6), 3);
+  
+  SECTION("Test Click Same As Current Position", "[state position]") {
+    State clicked_state = State(2, "qn",
+        glm::vec2(9, 8), 7);
+    std::vector<State> states = {kStartingState, kHaltingState, clicked_state};
+    const glm::vec2 kUpdatedPosition = glm::vec2(9, 8);
+    TuringMachineSimulatorHelper::UpdateStatePosition(clicked_state, states, 
+        kUpdatedPosition);
+    const State kExpectedClickedState = State(2, "qn",
+        glm::vec2(9, 8), 7);
+    REQUIRE(clicked_state.Equals(kExpectedClickedState));
+    REQUIRE(states.size() == 3);
+    const std::vector<State> kExpectedStates = {kStartingState, kHaltingState, 
+        kExpectedClickedState};
+    for (size_t i = 0; i < kExpectedStates.size(); i++) {
+      const State kStateOutput = states.at(i);
+      const State kExpectedState = kExpectedStates.at(i);
+      REQUIRE(kStateOutput.GetId() == kExpectedState.GetId());
+      REQUIRE(kStateOutput.GetStateName() == kExpectedState.GetStateName());
+      REQUIRE(kStateOutput.GetStateLocation()
+              == kExpectedState.GetStateLocation());
+      REQUIRE(kStateOutput.GetRadius() == kExpectedState.GetRadius());
+    }
+  }
+  
+  SECTION("Test Click Is A New Position", "[state position]") {
+    State clicked_state = State(2, "qn",
+        glm::vec2(9, 8), 7);
+    std::vector<State> states = {kStartingState, clicked_state, kHaltingState};
+    const glm::vec2 kUpdatedPosition = glm::vec2(0, 0);
+    TuringMachineSimulatorHelper::UpdateStatePosition(clicked_state, states,
+        kUpdatedPosition);
+    const State kExpectedClickedState = State(2, "qn",
+        glm::vec2(0, 0), 7);
+    REQUIRE(clicked_state.Equals(kExpectedClickedState));
+    REQUIRE(states.size() == 3);
+    const std::vector<State> kExpectedStates = {kStartingState, 
+        kExpectedClickedState, kHaltingState};
+    for (size_t i = 0; i < kExpectedStates.size(); i++) {
+      const State kStateOutput = states.at(i);
+      const State kExpectedState = kExpectedStates.at(i);
+      REQUIRE(kStateOutput.GetId() == kExpectedState.GetId());
+      REQUIRE(kStateOutput.GetStateName() == kExpectedState.GetStateName());
+      REQUIRE(kStateOutput.GetStateLocation()
+              == kExpectedState.GetStateLocation());
+      REQUIRE(kStateOutput.GetRadius() == kExpectedState.GetRadius());
+    }
+  }
+}
+
+TEST_CASE("Test Tape Characters Are Updated Correctly") {
+  SECTION("Test Return Key Is Pressed", "[update tape]") {
+    std::vector<char> tape = {'a', 'b', 'c'};
+    int character_to_edit = 0;
+    const int kReturnCode = 13;
+    character_to_edit = TuringMachineSimulatorHelper::UpdateTapeCharacter(tape,
+        character_to_edit, ' ', kReturnCode);
+    REQUIRE(character_to_edit == 3);
+    const std::vector<char> kExpectedTape = {'a', 'b', 'c'};
+    REQUIRE(tape == kExpectedTape);
+  }
+  
+  SECTION("Test Backspace Is Pressed", "[update tape]") {
+    std::vector<char> tape = {'a', 'b', 'c'};
+    int character_to_edit = 0;
+    const int kBackspaceCode = 8;
+    character_to_edit = TuringMachineSimulatorHelper::UpdateTapeCharacter(tape,
+        character_to_edit, ' ', kBackspaceCode);
+    REQUIRE(character_to_edit == 0);
+    const std::vector<char> kExpectedTape = {'-', 'b', 'c'};
+    REQUIRE(tape == kExpectedTape);
+  }
+  
+  SECTION("Test Number Is Typed", "[update tape]") {
+    std::vector<char> tape = {'a', 'b', 'c'};
+    int character_to_edit = 2;
+    character_to_edit = TuringMachineSimulatorHelper::UpdateTapeCharacter(tape,
+        character_to_edit, '2', -1);
+    REQUIRE(character_to_edit == 2);
+    const std::vector<char> kExpectedTape = {'a', 'b', '2'};
+    REQUIRE(tape == kExpectedTape);
+  }
+  
+  SECTION("Test Letter Is Typed", "[update tape]") {
+    std::vector<char> tape = {'a', 'b', 'c'};
+    int character_to_edit = 2;
+    character_to_edit = TuringMachineSimulatorHelper::UpdateTapeCharacter(tape,
+        character_to_edit, 'a', -1);
+    REQUIRE(character_to_edit == 2);
+    const std::vector<char> kExpectedTape = {'a', 'b', 'a'};
+    REQUIRE(tape == kExpectedTape);
+  }
+  
+  SECTION("Test Special Character Is Typed", "[update tape]") {
+    std::vector<char> tape = {'a', 'b', 'c'};
+    int character_to_edit = 1;
+    character_to_edit = TuringMachineSimulatorHelper::UpdateTapeCharacter(tape,
+        character_to_edit, '~', -1);
+    REQUIRE(character_to_edit == 1);
+    const std::vector<char> kExpectedTape = {'a', '~', 'c'};
+    REQUIRE(tape == kExpectedTape);
+  }
+}
+
+TEST_CASE("Test Updating State Names") {
+  const State kStartingState = State(1, "q1",
+      glm::vec2(1, 1), 5);
+  const State kHaltingState = State(5, "qh",
+      glm::vec2(5, 6), 3);
+  
+  SECTION("Test Return Key Is Pressed", "[state name]") {
+    State state_to_update = State(7, "qn", 
+        glm::vec2(1, 5), 7);
+    std::vector<State> states = {kStartingState, state_to_update, kHaltingState};
+    const int kReturnCode = 13;
+    const bool kIsBeingEdited = TuringMachineSimulatorHelper::UpdateStateName
+        (states, state_to_update, ' ', kReturnCode);
+    REQUIRE(kIsBeingEdited == false);
+    const State kUpdatedState = State(7, "qn",
+        glm::vec2(1, 5), 7);
+    REQUIRE(state_to_update.IsEmpty());
+    REQUIRE(states.size() == 3);
+    const std::vector<State> kExpectedStates = {kStartingState, kUpdatedState,
+        kHaltingState};
+    for (size_t i = 0; i < kExpectedStates.size(); i++) {
+      const State kStateOutput = states.at(i);
+      const State kExpectedState = kExpectedStates.at(i);
+      REQUIRE(kStateOutput.GetId() == kExpectedState.GetId());
+      REQUIRE(kStateOutput.GetStateName() == kExpectedState.GetStateName());
+      REQUIRE(kStateOutput.GetStateLocation()
+          == kExpectedState.GetStateLocation());
+      REQUIRE(kStateOutput.GetRadius() == kExpectedState.GetRadius());
+    }
+  }
+  
+  SECTION("Test Backspace Is Pressed", "[state name]") {
+    State state_to_update = State(7, "qexample",
+        glm::vec2(1, 5), 7);
+    std::vector<State> states = {kStartingState, state_to_update, kHaltingState};
+    const int kBackspaceCode = 8;
+    const bool kIsBeingEdited = TuringMachineSimulatorHelper::UpdateStateName
+        (states, state_to_update, ' ', kBackspaceCode);
+    REQUIRE(kIsBeingEdited);
+    const State kUpdatedState = State(7, "qexampl",
+        glm::vec2(1, 5), 7);
+    REQUIRE(state_to_update.Equals(kUpdatedState));
+    REQUIRE(states.size() == 3);
+    const std::vector<State> kExpectedStates = {kStartingState, kUpdatedState,
+        kHaltingState};
+    for (size_t i = 0; i < kExpectedStates.size(); i++) {
+      const State kStateOutput = states.at(i);
+      const State kExpectedState = kExpectedStates.at(i);
+      REQUIRE(kStateOutput.GetId() == kExpectedState.GetId());
+      REQUIRE(kStateOutput.GetStateName() == kExpectedState.GetStateName());
+      REQUIRE(kStateOutput.GetStateLocation()
+          == kExpectedState.GetStateLocation());
+      REQUIRE(kStateOutput.GetRadius() == kExpectedState.GetRadius());
+    }
+  }
+  
+  SECTION("Test Backspace With State Named 'q'", "[state name]") {
+    State state_to_update = State(7, "q",
+        glm::vec2(1, 5), 7);
+    std::vector<State> states = {kStartingState, state_to_update, kHaltingState};
+    const int kBackspaceCode = 8;
+    const bool kIsBeingEdited = TuringMachineSimulatorHelper::UpdateStateName
+        (states, state_to_update, ' ', kBackspaceCode);
+    REQUIRE(kIsBeingEdited);
+    const State kUpdatedState = State(7, "q",
+        glm::vec2(1, 5), 7);
+    REQUIRE(state_to_update.Equals(kUpdatedState));
+    REQUIRE(states.size() == 3);
+    const std::vector<State> kExpectedStates = {kStartingState, kUpdatedState,
+        kHaltingState};
+    for (size_t i = 0; i < kExpectedStates.size(); i++) {
+      const State kStateOutput = states.at(i);
+      const State kExpectedState = kExpectedStates.at(i);
+      REQUIRE(kStateOutput.GetId() == kExpectedState.GetId());
+      REQUIRE(kStateOutput.GetStateName() == kExpectedState.GetStateName());
+      REQUIRE(kStateOutput.GetStateLocation()
+          == kExpectedState.GetStateLocation());
+      REQUIRE(kStateOutput.GetRadius() == kExpectedState.GetRadius());
+    }
+  }
+  
+  SECTION("Test Number Is Typed", "[state name]") {
+    State state_to_update = State(7, "q2",
+        glm::vec2(1, 5), 7);
+    std::vector<State> states = {kStartingState, state_to_update, kHaltingState};
+    const bool kIsBeingEdited = TuringMachineSimulatorHelper::UpdateStateName
+        (states, state_to_update, '3', -1);
+    REQUIRE(kIsBeingEdited);
+    const State kUpdatedState = State(7, "q23",
+        glm::vec2(1, 5), 7);
+    REQUIRE(state_to_update.Equals(kUpdatedState));
+    REQUIRE(states.size() == 3);
+    const std::vector<State> kExpectedStates = {kStartingState, kUpdatedState,
+        kHaltingState};
+    for (size_t i = 0; i < kExpectedStates.size(); i++) {
+      const State kStateOutput = states.at(i);
+      const State kExpectedState = kExpectedStates.at(i);
+      REQUIRE(kStateOutput.GetId() == kExpectedState.GetId());
+      REQUIRE(kStateOutput.GetStateName() == kExpectedState.GetStateName());
+      REQUIRE(kStateOutput.GetStateLocation()
+          == kExpectedState.GetStateLocation());
+      REQUIRE(kStateOutput.GetRadius() == kExpectedState.GetRadius());
+    }
+  }
+  
+  SECTION("Test Letter Is Typed", "[state name]") {
+    State state_to_update = State(7, "q1",
+        glm::vec2(1, 5), 7);
+    std::vector<State> states = {kStartingState, state_to_update, kHaltingState};
+    const bool kIsBeingEdited = TuringMachineSimulatorHelper::UpdateStateName
+        (states, state_to_update, 'a', -1);
+    REQUIRE(kIsBeingEdited);
+    const State kUpdatedState = State(7, "q1a",
+        glm::vec2(1, 5), 7);
+    REQUIRE(state_to_update.Equals(kUpdatedState));
+    REQUIRE(states.size() == 3);
+    const std::vector<State> kExpectedStates = {kStartingState, kUpdatedState,
+        kHaltingState};
+    for (size_t i = 0; i < kExpectedStates.size(); i++) {
+      const State kStateOutput = states.at(i);
+      const State kExpectedState = kExpectedStates.at(i);
+      REQUIRE(kStateOutput.GetId() == kExpectedState.GetId());
+      REQUIRE(kStateOutput.GetStateName() == kExpectedState.GetStateName());
+      REQUIRE(kStateOutput.GetStateLocation()
+          == kExpectedState.GetStateLocation());
+      REQUIRE(kStateOutput.GetRadius() == kExpectedState.GetRadius());
+    }
+  }
+  
+  SECTION("Test Special Character Is Typed", "[state name]") {
+    State state_to_update = State(7, "qh",
+        glm::vec2(1, 5), 7);
+    std::vector<State> states = {kStartingState, state_to_update, kHaltingState};
+    const bool kIsBeingEdited = TuringMachineSimulatorHelper::UpdateStateName
+        (states, state_to_update, '?', -1);
+    REQUIRE(kIsBeingEdited);
+    const State kUpdatedState = State(7, "qh?",
+        glm::vec2(1, 5), 7);
+    REQUIRE(state_to_update.Equals(kUpdatedState));
+    REQUIRE(states.size() == 3);
+    const std::vector<State> kExpectedStates = {kStartingState, kUpdatedState,
+        kHaltingState};
+    for (size_t i = 0; i < kExpectedStates.size(); i++) {
+      const State kStateOutput = states.at(i);
+      const State kExpectedState = kExpectedStates.at(i);
+      REQUIRE(kStateOutput.GetId() == kExpectedState.GetId());
+      REQUIRE(kStateOutput.GetStateName() == kExpectedState.GetStateName());
+      REQUIRE(kStateOutput.GetStateLocation()
+              == kExpectedState.GetStateLocation());
+      REQUIRE(kStateOutput.GetRadius() == kExpectedState.GetRadius());
+    }
+  }
+}
+
+TEST_CASE("Test Updates Add Arrow Input Box") {
+  SECTION("Test Return Key Is Pressed", "[update add arrow input]") {
+    std::vector<std::string> add_arrow_inputs = {"a", "b", "r", "q1", "qn"};
+    const int kReturnCode = 13;
+    const int kIndexBeingEdited = TuringMachineSimulatorHelper
+        ::UpdateAddArrowInputs(add_arrow_inputs, 2,
+        ' ', kReturnCode);
+    REQUIRE(kIndexBeingEdited == 5);
+    const std::vector<std::string> kExpectedInputs = {"a", "b", "r", "q1", "qn"};
+    REQUIRE(add_arrow_inputs == kExpectedInputs);
+  }
+  
+  SECTION("Test Backspace Is Pressed", "[update add arrow input]") {
+    std::vector<std::string> add_arrow_inputs = {"a", "b", "r", "q1", "qn"};
+    const int kBackspaceCode = 8;
+    const int kIndexBeingEdited = TuringMachineSimulatorHelper
+        ::UpdateAddArrowInputs(add_arrow_inputs, 2, 
+        ' ', kBackspaceCode);
+    REQUIRE(kIndexBeingEdited == 2);
+    const std::vector<std::string> kExpectedInputs = {"a", "b", "", "q1", "qn"};
+    REQUIRE(add_arrow_inputs == kExpectedInputs);
+  }
+  
+  SECTION("Test Backspace Is Pressed And Input Is Empty", 
+      "[update add arrow input]") {
+    std::vector<std::string> add_arrow_inputs = {"a", "b", "r", "", "qn"};
+    const int kBackspaceCode = 8;
+    const int kIndexBeingEdited = TuringMachineSimulatorHelper
+        ::UpdateAddArrowInputs(add_arrow_inputs, 3, 
+        ' ', kBackspaceCode);
+    REQUIRE(kIndexBeingEdited == 3);
+    const std::vector<std::string> kExpectedInputs = {"a", "b", "r", "", "qn"};
+    REQUIRE(add_arrow_inputs == kExpectedInputs);
+  }
+  
+  SECTION("Test Number Is Typed", "[update add arrow input]") {
+    std::vector<std::string> add_arrow_inputs = {"", "b", "r", "q1", "qn"};
+    const int kIndexBeingEdited = TuringMachineSimulatorHelper
+        ::UpdateAddArrowInputs(add_arrow_inputs, 0,
+        '1', -1);
+    REQUIRE(kIndexBeingEdited == 0);
+    const std::vector<std::string> kExpectedInputs = {"1", "b", "r", "q1", "qn"};
+    REQUIRE(add_arrow_inputs == kExpectedInputs);
+  }
+  
+  SECTION("Test Letter Is Typed", "[update add arrow input]") {
+    std::vector<std::string> add_arrow_inputs = {"a", "b", "r", "qn", "q1"};
+    const int kIndexBeingEdited = TuringMachineSimulatorHelper
+        ::UpdateAddArrowInputs(add_arrow_inputs, 4,
+        'a', -1);
+    REQUIRE(kIndexBeingEdited == 4);
+    const std::vector<std::string> kExpectedInputs = {"a", "b", "r", "qn", "q1a"};
+    REQUIRE(add_arrow_inputs == kExpectedInputs);
+  }
+  
+  SECTION("Test Special Character Is Typed", "[update add arrow input]") {
+    std::vector<std::string> add_arrow_inputs = {"a", "b", "r", "qn", "q1"};
+    const int kIndexBeingEdited = TuringMachineSimulatorHelper
+        ::UpdateAddArrowInputs(add_arrow_inputs, 1,
+        '?', -1);
+    REQUIRE(kIndexBeingEdited == 1);
+    const std::vector<std::string> kExpectedInputs = {"a", "b?", "r", "qn", "q1"};
+    REQUIRE(add_arrow_inputs == kExpectedInputs);
   }
 }

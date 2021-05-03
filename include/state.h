@@ -38,6 +38,8 @@ class State {
     
     void SetStateLocation(const glm::vec2 &state_location);
     
+    double GetRadius() const;
+    
     glm::vec2 GetStateLocation() const;
 
     /**

@@ -24,6 +24,10 @@ std::string State::GetStateName() const {
   return state_name_;
 }
 
+double State::GetRadius() const {
+  return radius_;
+}
+
 void State::SetStateLocation(const glm::vec2 &state_location) {
   state_location_ = state_location;
 }

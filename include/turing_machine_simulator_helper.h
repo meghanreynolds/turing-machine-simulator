@@ -3,6 +3,9 @@
 #include <cmath>
 
 #include "cinder/gl/gl.h"
+#include "cinder/app/App.h"
+#include "direction.h"
+#include "state.h"
 
 namespace turingmachinesimulator {
 
@@ -80,6 +83,89 @@ class TuringMachineSimulatorHelper {
      */
     static std::tuple<glm::vec2, glm::vec2, glm::vec2> GetArrow(const 
         glm::vec2 &point_a, const glm::vec2 &point_b);
+    
+    /**
+     * This method adds a direction to the state diagram if the provided inputs
+     * were correct and does nothing otherwise
+     * 
+     * @param add_direction_inputs a vector of strings representing the read, 
+     *     write, and shift characters, the name of the state to move from, 
+     *     and the name of the state to move to (in that order)
+     * @param directions a vector of Directions representing the current 
+     *     directions in the state diagrams
+     * @param states a vector of States representing the current States in the
+     *     state diagram
+     */
+    static void AddDirection(const std::vector<std::string> 
+        &add_direction_inputs, std::vector<Direction> &directions, const
+        std::vector<State> &states);
+    
+    /**
+     * This method resets the tape back to a tape with 8 squares containing
+     * blank characters
+     * 
+     * @param tape a vector of characters representing the tape
+     */
+    static void ResetTape(std::vector<char> &tape);
+    
+    /**
+     * This method deletes the given state from the given list of states as well
+     * as all directions involving that state
+     * 
+     * @param state_to_delete a State representing the state to be deleted
+     * @param states a vector of States representing the states in the state 
+     *     diagram
+     * @param directions a vector of Directions representing the directions in
+     *     the state diagram
+     */
+    static void DeleteGivenState(const State &state_to_delete, std::vector<State> 
+        &states, std::vector<Direction> &directions);
+    
+    /**
+     * This method updates the state that the user is clicking on's position to 
+     * be the location that the user clicked
+     * 
+     * @param clicked_state a State representing the State that the user is 
+     * @param states a vector of States representing the States in the State
+     *     diagram
+     * @param click_location a vec2 representing the location to move the state
+     *     to
+     */
+    static void UpdateStatePosition(State &clicked_state, std::vector<State> 
+        &states, const glm::vec2 &click_location);
+    
+    /**
+     * This method updates the tape character that is being edited according
+     * to the key entered by the user
+     * 
+     * @param tape a vector of characters representing the tape
+     * @param index_of_character_to_edit an int representing the index of the
+     *     character to edit
+     * @param typed_char a character representing the character the user typed
+     * @param event_code an int representing the event code of the key the user
+     *     entered
+     * @return an int representing the updated character being edited
+     */
+    static int UpdateTapeCharacter(std::vector<char> &tape, 
+        int index_of_character_to_edit, char typed_char, int event_code);
+
+    /**
+     * This method updates the name of the given state according to the key 
+     * entered by the user
+     * 
+     * @param states a vector of States representing the states in the state
+     *     diagram
+     * @param state_being_modified a State representing the state to edit
+     * @param typed_char a character representing the character the user typed
+     * @param event_code an int representing the event code of of the key that
+     *     the user entered
+     * @return a bool that is true if the state name is still being edited
+     */
+    static bool UpdateStateName(std::vector<State> &states, 
+        State &state_being_modified, char typed_char, int event_code);
+    
+    static int UpdateAddArrowInputs(std::vector<std::string> &add_arrow_inputs, 
+        int index_of_input_to_edit, char typed_char, int event_code);
 };
 
 } // namespace turingmachinesimulator

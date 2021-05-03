@@ -159,19 +159,8 @@ void TuringMachineSimulatorApp::mouseDrag(ci::app::MouseEvent event) {
     return;
   }
   
-  // update the clicked state's position to be where the user dragged it
-  // cannot do a for-each loop here because we need the index in states_
-  for (size_t i = 0; i < states_.size(); i++) {
-    const State kCurrentState = states_.at(i);
-    // update the clicked state's position to be where the user dragged it
-    if (kCurrentState.Equals(clicked_state_)) {
-      const State kUpdatedState = State(kCurrentState.GetId(),
-          kCurrentState.GetStateName(), event.getPos(), kRadiusOfStates);
-      states_[i] = kUpdatedState;
-      clicked_state_ = states_[i];
-      break; // once the state to update has been found, nothing to search for
-    }
-  }
+  TuringMachineSimulatorHelper::UpdateStatePosition(clicked_state_, 
+      states_, event.getPos());
 }
 
 void TuringMachineSimulatorApp::keyDown(ci::app::KeyEvent event) {
@@ -186,6 +175,7 @@ void TuringMachineSimulatorApp::keyDown(ci::app::KeyEvent event) {
       || kEventCode == ci::app::KeyEvent::KEY_RSHIFT) {
     return;
   }
+  
   // editing tape character takes precedence to all other edits
   if (editing_tape_character_) {
     EditTapeCharacter(event);
@@ -194,14 +184,16 @@ void TuringMachineSimulatorApp::keyDown(ci::app::KeyEvent event) {
   
   // editing state name takes precedence to adding arrow
   if (editing_state_name_) {
-    EditStateName(event);
+    editing_state_name_ = TuringMachineSimulatorHelper::UpdateStateName
+        (states_, state_being_modified_, event.getChar(), event.getCode());
     return;
   }
   
   // edit add arrow text if applicable
-  const size_t kNotEditingAddArrowIndex= 5;
-  if (index_of_add_arrow_text_to_edit != kNotEditingAddArrowIndex) {
-    EditAddArrowInputBox(event);
+  if (index_of_add_arrow_text_to_edit != add_arrow_inputs_.size()) {
+    index_of_add_arrow_text_to_edit = TuringMachineSimulatorHelper
+        ::UpdateAddArrowInputs(add_arrow_inputs_,
+        index_of_add_arrow_text_to_edit, event.getChar(), event.getCode());
   }
 }
 
@@ -216,12 +208,12 @@ bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
     input_box_was_clicked = true;
 
   } else if (turingmachinesimulator::TuringMachineSimulatorHelper
-        ::IsPointInRectangle(click_location, kWriteInputBox)) {
+      ::IsPointInRectangle(click_location, kWriteInputBox)) {
     index_of_add_arrow_text_to_edit = kIndexOfWriteInput;
     input_box_was_clicked = true;
 
   } else if (turingmachinesimulator::TuringMachineSimulatorHelper
-        ::IsPointInRectangle(click_location, kShiftInputBox)) {
+      ::IsPointInRectangle(click_location, kShiftInputBox)) {
     index_of_add_arrow_text_to_edit = kIndexOfShiftInput;
     input_box_was_clicked = true;
 
@@ -231,31 +223,23 @@ bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
     input_box_was_clicked = true;
 
   } else if (turingmachinesimulator::TuringMachineSimulatorHelper
-        ::IsPointInRectangle(click_location, kMoveToInputBox)) {
+      ::IsPointInRectangle(click_location, kMoveToInputBox)) {
     index_of_add_arrow_text_to_edit = kIndexOfMoveToInput;
     input_box_was_clicked = true;
 
   } else if (turingmachinesimulator::TuringMachineSimulatorHelper
-        ::IsPointInRectangle(click_location, kSubmitButton)) {
-    // on submit create a direction from the inputted information
-    Direction direction = Direction(add_arrow_inputs_, states_);
-    // if direction is empty, the creation of a direction was unsuccessful, so
-    // we don't want to add it to the list of directions
-    if (!direction.IsEmpty()) {
-      directions_.push_back(direction);
-      DrawArrow(direction);
-    }
+      ::IsPointInRectangle(click_location, kSubmitButton)) {
+    turingmachinesimulator::TuringMachineSimulatorHelper::AddDirection
+        (add_arrow_inputs_, directions_, states_);
     index_of_add_arrow_text_to_edit = kIndexOfNoTextToEdit;
     input_box_was_clicked = true;
 
   } else if (turingmachinesimulator::TuringMachineSimulatorHelper
-        ::IsPointInRectangle(click_location, kClearButton)) {
+      ::IsPointInRectangle(click_location, kClearButton)) {
     // reset all modifiable global variables when clear is clicked
     directions_ = {};
     states_ = {};
-    const char kBlankCharacter = '-';
-    tape_ = {kBlankCharacter, kBlankCharacter, kBlankCharacter, kBlankCharacter,
-             kBlankCharacter, kBlankCharacter, kBlankCharacter, kBlankCharacter};
+    turingmachinesimulator::TuringMachineSimulatorHelper::ResetTape(tape_);
     index_of_character_being_read_ = 0;
     simulation_is_in_progress_ = false;
     turing_machine_ = TuringMachine();
@@ -272,6 +256,7 @@ bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
     // create a turing machine from user-defined states, directions, and tape
     // on simulate button click
     turing_machine_ = TuringMachine(states_, directions_, tape_);
+    
     // if turing machine is empty, the creation of a turing machine was 
     // unsuccessful so we want to display the error message, otherwise, we
     // want to being the simulation
@@ -280,7 +265,6 @@ bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
     } else {
       num_simulations_run_ += 1;
       simulation_is_in_progress_ = true;
-      // if complete configurations are being sourced to a markdown file,
       // label this complete configuration with a heading indicating which
       // number simulation this is
       std::ofstream configuration_file =
@@ -289,6 +273,9 @@ bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
         // NOTE: "##" is the markdown tag for a secondary heading
         configuration_file << "## Simulation " << num_simulations_run_ 
             << " Complete Configuration:  ##\n";
+      } else {
+        std::cout << "Simulation " << num_simulations_run_ 
+            << " Complete Configuration: " << std::endl;
       }
     }
 
@@ -296,9 +283,7 @@ bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
         IsPointInRectangle(click_location, kResetTapeButton)) {
     // when the tape is reset, set the tape to all blank characters and 
     // reset scanner to index 0 of the tape
-    const char kBlankCharacter = '-';
-    tape_ = {kBlankCharacter, kBlankCharacter, kBlankCharacter, kBlankCharacter,
-             kBlankCharacter, kBlankCharacter, kBlankCharacter, kBlankCharacter};
+    turingmachinesimulator::TuringMachineSimulatorHelper::ResetTape(tape_);
     index_of_character_being_read_ = 0;
   }
 
@@ -340,7 +325,7 @@ bool TuringMachineSimulatorApp::HandleStateCreation(const glm::vec2
       kRadiusOfStates)) {
     const std::string kHaltingStateName = "qh";
     new_state = State(state_id_, kHaltingStateName, click_location,
-                      kRadiusOfStates);
+        kRadiusOfStates);
     new_state_was_created = true;
   }
 
@@ -363,134 +348,22 @@ bool TuringMachineSimulatorApp::HandleStateDeletion(const glm::vec2
       (kLocationOfQn, kDoubleTheRadii)
       || clicked_state_.IsStateCenterWithinGivenRadiusOfPoint(kLocationOfQh,
       kDoubleTheRadii)) {
-    // iterate through the states and remove the clicked_state_ node from the
-    // list of active states
-    State state_to_erase;
-    // need to use for-each loop here because we need the index of the state
-    // to delete
-    for (size_t i = 0; i < states_.size(); i++) {
-      State current_state = states_.at(i);
-      if (current_state.Equals(clicked_state_)) {
-        state_to_erase = current_state;
-        states_.erase(states_.begin() + i);
-        break; // once we've found the state to erase, nothing to search for
-      }
-    }
-
-    // iterate through the directions and remove all directions involving
-    // the deleted state
-    const std::vector<Direction> kOriginalDirections = directions_;
-    size_t index_in_directions = 0;
-    for (const Direction &kDirection : kOriginalDirections) {
-      // NOTE: Must be in an else if statement in case state to move to is the
-      // same as the state to move from
-      if (kDirection.GetStateToMoveTo().Equals(state_to_erase)) {
-        directions_.erase(directions_.begin() + index_in_directions);
-        index_in_directions -= 1;
-      } else if (kDirection.GetStateToMoveFrom().Equals(state_to_erase)) {
-        directions_.erase(directions_.begin() + index_in_directions);
-        index_in_directions -= 1;
-      }
-      index_in_directions += 1;
-    }
+    turingmachinesimulator::TuringMachineSimulatorHelper::DeleteGivenState
+        (clicked_state_, states_, directions_);
     return true;
   }
-
   return false;
 }
 
 void TuringMachineSimulatorApp::EditTapeCharacter(const ci::app::KeyEvent
     &key_event) {
-  const int kEventCode = key_event.getCode();
-
-  // on return, stop editing the tape character name
-  if (kEventCode == ci::app::KeyEvent::KEY_RETURN) {
+  index_of_character_being_edited_ = 
+      TuringMachineSimulatorHelper::UpdateTapeCharacter(tape_, 
+      index_of_character_being_edited_, key_event.getChar(), 
+      key_event.getCode());
+  if (index_of_character_being_edited_ == tape_.size()) {
     editing_tape_character_ = false;
-    index_of_character_being_edited_ = tape_.size();
-    return;
   }
-
-  // make the character a blank character on backspace
-  if (kEventCode == ci::app::KeyEvent::KEY_BACKSPACE) {
-    const char kBlankCharacter = '-';
-    tape_[index_of_character_being_edited_] = kBlankCharacter;
-    return;
-  }
-
-  // if no special event codes were typed, change the character to be the
-  // character entered by the user
-  tape_[index_of_character_being_edited_] = key_event.getChar();
-}
-
-
-void TuringMachineSimulatorApp::EditStateName(const ci::app::KeyEvent
-    &key_event) {
-  const int kEventCode = key_event.getCode();
-
-  // on return, stop editing the state name
-  if (kEventCode == ci::app::KeyEvent::KEY_RETURN) {
-    editing_state_name_ = false;
-    state_being_modified_ = State();
-    return;
-  }
-
-  // find the index in states_ of the state whose name is being modified
-  size_t kIndexOfStateBeingModified;
-  for (size_t i = 0; i < states_.size(); i++) {
-    const State kCurrentState = states_.at(i);
-    if (kCurrentState.Equals(state_being_modified_)) {
-      kIndexOfStateBeingModified = i;
-      break; // break because there's nothing left to search for
-    }
-  }
-  const std::string kNameToEdit = state_being_modified_.GetStateName();
-
-  // remove the last character from the string on backspace
-  if (kEventCode == ci::app::KeyEvent::KEY_BACKSPACE) {
-    // state name may not be less than 1 character (the q may not be deleted)
-    if (kNameToEdit.size() > 1) {
-      const size_t kLastCharacterOfName = kNameToEdit.size() - 1;
-      const std::string kUpdatedName = kNameToEdit.substr(0,
-          kLastCharacterOfName);
-      state_being_modified_.SetStateName(kUpdatedName);
-      states_[kIndexOfStateBeingModified] = state_being_modified_;
-    }
-    return;
-  }
-
-  // if no special event codes were typed, add the character that was typed
-  // to the end of the state's name
-  state_being_modified_.SetStateName(kNameToEdit + key_event.getChar());
-  states_[kIndexOfStateBeingModified] = state_being_modified_;
-}
-
-void TuringMachineSimulatorApp::EditAddArrowInputBox(const ci::app::KeyEvent
-    &key_event) {
-  const int kEventCode = key_event.getCode();
-
-  // on return, stop editing the text that's being edited
-  if (kEventCode == ci::app::KeyEvent::KEY_RETURN) {
-    index_of_add_arrow_text_to_edit = add_arrow_inputs_.size();
-    return;
-  }
-
-  const std::string kTextToEdit =
-      add_arrow_inputs_[index_of_add_arrow_text_to_edit];
-  // if backspace, remove 1 character from the end of the text being edited
-  if (kEventCode == ci::app::KeyEvent::KEY_BACKSPACE) {
-    // if size of text is less than or equal to 0, there's nothing to remove
-    if (!kTextToEdit.empty()) {
-      const size_t kLastCharacterOfText = kTextToEdit.size() - 1;
-      add_arrow_inputs_[index_of_add_arrow_text_to_edit] =
-          kTextToEdit.substr(0, kLastCharacterOfText);
-    }
-    return;
-  }
-
-  // if no special event codes were typed, then append the entered character to 
-  // the text that's being edited
-  add_arrow_inputs_[index_of_add_arrow_text_to_edit] = kTextToEdit
-      + key_event.getChar();
 }
 
 void TuringMachineSimulatorApp::StopSimulation() {
