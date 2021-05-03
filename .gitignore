@@ -141,4 +141,7 @@ _deps
 # External projects
 *-prefix/
 
+### Coverage File ###
+default.profraw
+
 # End of https://www.gitignore.io/api/c++,cmake,clion
