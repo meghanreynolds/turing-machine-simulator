@@ -74,9 +74,12 @@ void TuringMachineSimulatorApp::update() {
     // scanner is moving
     ci::app::setFrameRate(1);
     
+    // update the turing machine
+    turing_machine_.Update();
+    
     // add the current turing machine configuration to the console output or
     // the markdown file, depending on whether the markdown file exists or not
-    std::ofstream configuration_file = 
+    std::ofstream configuration_file =
         std::ofstream(kPathToCompleteConfigurationFile, std::ios::app);
     if (!configuration_file.is_open()) {
       std::cout << turing_machine_.GetConfigurationForConsole();
@@ -84,11 +87,16 @@ void TuringMachineSimulatorApp::update() {
       configuration_file << turing_machine_.GetConfigurationForMarkdown();
     }
     
-    // update the turing machine
-    turing_machine_.Update();
+    // update the tape, scanner, and stop simulation if applicable
     tape_ = turing_machine_.GetTape();
     index_of_character_being_read_ = turing_machine_.GetIndexOfScanner();
     if (turing_machine_.IsHalted()) {
+      // NOTE: Line 95-99 must not be added to StopSimulation()
+      if (!configuration_file.is_open()) {
+        std::cout << '\n';
+      } else {
+        configuration_file << "  " << "\n";
+      }
       StopSimulation();
     }
   }
@@ -102,6 +110,14 @@ void TuringMachineSimulatorApp::mouseDown(ci::app::MouseEvent event) {
   if (simulation_is_in_progress_) {
     if (turingmachinesimulator::TuringMachineSimulatorHelper::IsPointInRectangle
         (kClickLocation, kStopSimulationButton)) {
+      // NOTE: Line 114-120 must not be added to StopSimulation()
+      std::ofstream configuration_file =
+          std::ofstream(kPathToCompleteConfigurationFile, std::ios::app);
+      if (!configuration_file.is_open()) {
+        std::cout << '\n';
+      } else {
+        configuration_file << "  " << "\n";
+      }
       StopSimulation();
     }
     return;
@@ -272,10 +288,12 @@ bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
       if (configuration_file.is_open()) {
         // NOTE: "##" is the markdown tag for a secondary heading
         configuration_file << "## Simulation " << num_simulations_run_ 
-            << " Complete Configuration:  ##\n";
+            << " Complete Configuration:  ##\n" 
+            << turing_machine_.GetConfigurationForMarkdown();
       } else {
         std::cout << "Simulation " << num_simulations_run_ 
-            << " Complete Configuration: " << std::endl;
+            << " Complete Configuration: " << std::endl 
+            << turing_machine_.GetConfigurationForConsole();
       }
     }
 
@@ -367,19 +385,8 @@ void TuringMachineSimulatorApp::EditTapeCharacter(const ci::app::KeyEvent
 }
 
 void TuringMachineSimulatorApp::StopSimulation() {
-  // add the final turing machine configuration to the console output or
-  // the markdown file, depending on whether the markdown file exists or not
   std::ofstream configuration_file =
       std::ofstream(kPathToCompleteConfigurationFile, std::ios::app);
-  if (!configuration_file.is_open()) {
-    std::cout << turing_machine_.GetConfigurationForConsole() << std::endl;
-  } else {
-    // NOTE: the 2 spaces are necessary to start a newline for the next complete
-    // configuration in the markdown file
-    configuration_file << turing_machine_.GetConfigurationForMarkdown() << "  " 
-        << '\n';
-  }
-  
   simulation_is_in_progress_ = false;
   // resume normal frame rate from reduced frame rate so graphics aren't slow
   ci::app::setFrameRate(60);
