@@ -166,10 +166,10 @@ class TuringMachineSimulatorApp : public ci::app::App {
     /**
      * int storing the vertical window size, must be at least 600 
      */
-    const int kVerticalWindowSize = 850;
+    const int kVerticalWindowSize = 600;
     
     /**
-     * string storing the path the file storing the complete configurations 
+     * string storing the path to the file storing the complete configurations 
      * produced by the simulation
      */
      const std::string kPathToCompleteConfigurationFile = 
@@ -188,7 +188,7 @@ class TuringMachineSimulatorApp : public ci::app::App {
     /**
      * character storing the turing machine tape's blank character
      */
-    char blank_character_ = '0';
+    char blank_character_ = '-';
     
     /**
      * vector storing the characters on the tape (by default starts with 8

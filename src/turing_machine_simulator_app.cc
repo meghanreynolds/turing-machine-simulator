@@ -244,6 +244,7 @@ void TuringMachineSimulatorApp::keyDown(ci::app::KeyEvent event) {
       }
       turingmachinesimulator::TuringMachineSimulatorHelper::ResetTape(tape_,
           blank_character_);
+      index_of_character_being_read_ = 0;
     }
     return;
   }
