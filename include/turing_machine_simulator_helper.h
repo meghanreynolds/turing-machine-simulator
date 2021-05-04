@@ -35,6 +35,20 @@ class TuringMachineSimulatorHelper {
         const ci::Rectf &rectangle);
 
     /**
+     * This method takes in a point, a center of a circle, and the radius of the
+     * circle and returns a bool that is true if the point is inside of the 
+     * circle and false otherwise
+     * 
+     * @param point a vec2 representing a point
+     * @param circle_center a vec2 representing the center of a circle
+     * @param radius a double representing the radius of the circle
+     * @return a bool that is true if the given point is inside of the given 
+     *     circle and false otherwise
+     */
+    static bool IsPointInCircle(const glm::vec2 &point, 
+        const glm::vec2 &circle_center, double radius);
+
+    /**
      * This method calculates the center of the given rectangle
      * 
      * @param rectangle a Rectf to calculate the center of

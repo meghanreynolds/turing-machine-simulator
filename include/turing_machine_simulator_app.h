@@ -64,6 +64,19 @@ class TuringMachineSimulatorApp : public ci::app::App {
 
   private:
     /**
+     * This method executes 1 direction in the user-defined turing machine
+     */
+    void PerformTuringMachineStep();
+    
+    /**
+     * This method takes in the location of the user's click and handles the 
+     * event if a button on the settings page was clicked
+     * 
+     * @param click_location a vec2 representing where the user clicked
+     */
+    void HandleSettingsButtons(const glm::vec2 &click_location);
+    
+    /**
     * This method takes in the location of the user's click and handles the 
     * event if a box was clicked
     * 
@@ -148,12 +161,12 @@ class TuringMachineSimulatorApp : public ci::app::App {
     /**
      * int storing the horizontal window size, must be at least 600 
      */
-    const int kHorizontalWindowSize = 600;
+    const int kHorizontalWindowSize = 1000;
     
     /**
      * int storing the vertical window size, must be at least 600 
      */
-    const int kVerticalWindowSize = 600;
+    const int kVerticalWindowSize = 850;
     
     /**
      * string storing the path the file storing the complete configurations 
@@ -228,6 +241,11 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * bool that is true if a turing machine is being simulated
      */
      bool simulation_is_in_progress_ = false;
+
+     /**
+      * bool that is true if the simulation is being done in step through mode
+      */
+     bool in_step_through_mode_ = false;
      
      /**
       * bool that is true if the settings page is being displayed
@@ -575,6 +593,24 @@ class TuringMachineSimulatorApp : public ci::app::App {
         kLowerCornerStopButton);
     
     /**
+     * vec2 storing the upper left corner of the step through button
+     */
+    const glm::vec2 kUpperCornerStepThroughButton = 
+        glm::vec2(kUpperCornerStopButton.x - 80, kUpperCornerStopButton.y);
+    
+    /**
+     * vec2 storing the lower right corner of the step through button
+     */
+    const glm::vec2 kLowerCornerStepThroughButton = 
+        glm::vec2(kUpperCornerStopButton.x, kLowerCornerStopButton.y);
+    
+    /**
+     * Rectf storing the step through button
+     */
+    const ci::Rectf kStepThroughButton = ci::Rectf(kUpperCornerStepThroughButton,
+        kLowerCornerStepThroughButton);
+    
+    /**
      * vec2 storing the upper left corner of the settings button
      */
     const glm::vec2 kUpperCornerSettingsButton = glm::vec2(kHorizontalWindowSize 
@@ -625,6 +661,22 @@ class TuringMachineSimulatorApp : public ci::app::App {
      */
     const ci::Rectf kExitSettingsButton = 
         ci::Rectf(kUpperCornerExitSettingsButton, kLowerCornerExitSettingsButton);
+    
+    /**
+     * vec2 storing the center of the step through toggle on circle
+     */
+    const glm::vec2 kStepThroughToggleOnCenter = glm::vec2(110, 90);
+    
+    /**
+     * vec2 storing the center of the step through toggle off circle
+     */
+    const glm::vec2 kStepThroughToggleOffCenter = glm::vec2(150, 90);
+    
+    /**
+     * double storing the radii of the step through toggles
+     */
+    const double kStepThroughToggleRadii = 10;
+
 };
 
 } // namespace turingmachinesimulator

@@ -90,7 +90,7 @@ The simulation will follow the following conventions and assumptions:
 - [ ] Visually support having multiple arrows between the same states
 - [ ] Let users pick where on the tape the scanner starts
 - [X] Let users pick the default blank character
-- [ ] Let users click through the simulation step by step
+- [X] Let users click through the simulation step by step
 - [ ] Let users delete individual directions
 
 ## Figma Rendering ##

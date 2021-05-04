@@ -7,6 +7,7 @@ using namespace turingmachinesimulator;
 /**
  * Partitions Testing As Follows:
  * Correctly Checks If Given Point Is In Given Rectangle
+ * Correctly Checks If Given Point Is In Given Circle
  * Correctly Calculates Center Of Given Rectangle
  * Correctly Calculates Location Of Direction Text
  * Correctly Evaluates Index Of Square On Tape That Was Clicked
@@ -44,16 +45,40 @@ TEST_CASE("Test Checks If Given Point Is In Given Rectangle") {
     const glm::vec2 kPoint = glm::vec2(14, 14);
     const ci::Rectf kRectangle = ci::Rectf(glm::vec2(1, 1),
         glm::vec2(14, 14));
-    REQUIRE(TuringMachineSimulatorHelper::IsPointInRectangle(kPoint, kRectangle) 
-        == true);
+    REQUIRE(TuringMachineSimulatorHelper::IsPointInRectangle(kPoint, kRectangle));
   }
 
   SECTION("Test Point Is Inside Rectangle", "[point is in rectangle]") {
     const glm::vec2 kPoint = glm::vec2(10, 10);
     const ci::Rectf kRectangle = ci::Rectf(glm::vec2(1, 1),
         glm::vec2(14, 14));
-    REQUIRE(TuringMachineSimulatorHelper::IsPointInRectangle(kPoint, kRectangle)
-        == true);
+    REQUIRE(TuringMachineSimulatorHelper::IsPointInRectangle(kPoint, kRectangle));
+  }
+}
+
+TEST_CASE("Test Checks If Given Point Is In Given Circle") {
+  SECTION("Test Point Is Not In Circle", "[point is in circle]") {
+    const glm::vec2 kPoint = glm::vec2(17, 17);
+    const glm::vec2 kCircleCenter = glm::vec2(10, 10);
+    const double kCircleRadius = 5;
+    REQUIRE(TuringMachineSimulatorHelper::IsPointInCircle(kPoint, kCircleCenter,
+        kCircleRadius) == false);
+  }
+
+  SECTION("Test Point Is On Edge Of Circle", "[point is in circle]") {
+    const glm::vec2 kPoint = glm::vec2(15, 10);
+    const glm::vec2 kCircleCenter = glm::vec2(10, 10);
+    const double kCircleRadius = 5;
+    REQUIRE(TuringMachineSimulatorHelper::IsPointInCircle(kPoint, kCircleCenter,
+        kCircleRadius));
+  }
+
+  SECTION("Test Point Is Inside Circle", "[point is in circle]") {
+    const glm::vec2 kPoint = glm::vec2(7, 7);
+    const glm::vec2 kCircleCenter = glm::vec2(10, 10);
+    const double kCircleRadius = 5;
+    REQUIRE(TuringMachineSimulatorHelper::IsPointInCircle(kPoint, kCircleCenter,
+        kCircleRadius));
   }
 }
 

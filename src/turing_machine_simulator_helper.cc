@@ -16,6 +16,16 @@ bool TuringMachineSimulatorHelper::IsPointInRectangle(const glm::vec2
   return false;
 }
 
+bool TuringMachineSimulatorHelper::IsPointInCircle(const glm::vec2 &point, 
+    const glm::vec2 &circle_center, double radius) {
+  const float kDistanceBetweenCenterAndPoint = glm::distance(circle_center,
+      point);
+  if (kDistanceBetweenCenterAndPoint <= radius) {
+    return true;
+  }
+  return false;
+}
+
 glm::vec2 TuringMachineSimulatorHelper::GetCenterOfRectangle(const ci::Rectf 
     &rectangle) {
   // the variables below use division by 2 to get the midpoint

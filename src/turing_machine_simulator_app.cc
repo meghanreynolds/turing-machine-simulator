@@ -40,7 +40,7 @@ void TuringMachineSimulatorApp::draw() {
   
   //display the simulate button
   DrawButton(kSimulateButton, "SIMULATE!",
-      ci::Color("palegreen"));
+      ci::Color("mediumspringgreen"));
   
   // display the tape
   DrawTape();
@@ -53,10 +53,16 @@ void TuringMachineSimulatorApp::draw() {
   DrawButton(kSettingsButton, "Settings", 
       ci::Color("papayawhip"));
   
-  // display stop simulation button if simulation is in progress
+  // display stop simulation button if simulation is in progress and step through
+  // if in step-through mode
   if (simulation_is_in_progress_) {
     DrawButton(kStopSimulationButton, "STOP!",
         ci::Color("salmon"));
+    
+    if (in_step_through_mode_) {
+      DrawButton(kStepThroughButton, "STEP!", 
+          ci::Color("mediumspringgreen"));
+    }
   }
   
   // display user-defined directions
@@ -103,8 +109,9 @@ void TuringMachineSimulatorApp::draw() {
 }
 
 void TuringMachineSimulatorApp::update() {
-  // only use the update function while the simulation is in-progress
-  if(simulation_is_in_progress_) {
+  // only use the update function while the simulation is in-progress and not
+  // in step-through mode
+  if(simulation_is_in_progress_ && !in_step_through_mode_) {
     // significantly reduce frame rate to allow users to really see how the
     // scanner is moving
     ci::app::setFrameRate(1);
@@ -115,32 +122,7 @@ void TuringMachineSimulatorApp::update() {
       return;
     }
     
-    // update the turing machine
-    turing_machine_.Update();
-    
-    // add the current turing machine configuration to the console output or
-    // the markdown file, depending on whether the markdown file exists or not
-    std::ofstream configuration_file =
-        std::ofstream(kPathToCompleteConfigurationFile, std::ios::app);
-    if (!configuration_file.is_open()) {
-      std::cout << turing_machine_.GetConfigurationForConsole();
-    } else {
-      configuration_file << turing_machine_.GetConfigurationForMarkdown();
-    }
-    
-    // update the tape, scanner, and stop simulation if applicable
-    tape_ = turing_machine_.GetTape();
-    index_of_character_being_read_ = turing_machine_.GetIndexOfScanner();
-    if (turing_machine_.IsHalted()) {
-      halting_state_to_highlight_ = turing_machine_.GetCurrentState();
-      // NOTE: Line 95-99 must not be added to StopSimulation()
-      if (!configuration_file.is_open()) {
-        std::cout << '\n';
-      } else {
-        configuration_file << "  " << "\n";
-      }
-      StopSimulation();
-    }
+    PerformTuringMachineStep();
   }
 }
 
@@ -148,7 +130,7 @@ void TuringMachineSimulatorApp::mouseDown(ci::app::MouseEvent event) {
   const glm::vec2 kClickLocation = event.getPos();
   
   // when simulation is in progress, clicking is not supported unless
-  // clicking the stop simulation button
+  // clicking the stop simulation or step buttons
   if (simulation_is_in_progress_) {
     if (turingmachinesimulator::TuringMachineSimulatorHelper::IsPointInRectangle
         (kClickLocation, kStopSimulationButton)) {
@@ -162,19 +144,19 @@ void TuringMachineSimulatorApp::mouseDown(ci::app::MouseEvent event) {
       }
       StopSimulation();
     }
+    
+    if (in_step_through_mode_) {
+      if (turingmachinesimulator::TuringMachineSimulatorHelper::IsPointInRectangle
+          (kClickLocation, kStepThroughButton)) {
+        PerformTuringMachineStep();
+      }
+    }
+    
     return;
   }
   
   if (settings_is_showing_) {
-    if (turingmachinesimulator::TuringMachineSimulatorHelper::
-        IsPointInRectangle(kClickLocation, kBlankCharInputBox)) {
-      editing_blank_char_ = true;
-      
-    } else if ((turingmachinesimulator::TuringMachineSimulatorHelper::
-        IsPointInRectangle(kClickLocation, kExitSettingsButton))) {
-      editing_blank_char_ = false;
-      settings_is_showing_ = false;
-    }
+    HandleSettingsButtons(kClickLocation);
     return;
   }
   
@@ -285,6 +267,58 @@ void TuringMachineSimulatorApp::keyDown(ci::app::KeyEvent event) {
     index_of_add_arrow_text_to_edit = TuringMachineSimulatorHelper
         ::UpdateAddArrowInputs(add_arrow_inputs_,
         index_of_add_arrow_text_to_edit, event.getChar(), event.getCode());
+  }
+}
+
+void TuringMachineSimulatorApp::PerformTuringMachineStep() {
+  // update the turing machine
+  turing_machine_.Update();
+
+  // add the current turing machine configuration to the console output or
+  // the markdown file, depending on whether the markdown file exists or not
+  std::ofstream configuration_file =
+      std::ofstream(kPathToCompleteConfigurationFile, std::ios::app);
+  if (!configuration_file.is_open()) {
+    std::cout << turing_machine_.GetConfigurationForConsole();
+  } else {
+    configuration_file << turing_machine_.GetConfigurationForMarkdown();
+  }
+
+  // update the tape, scanner, and stop simulation if applicable
+  tape_ = turing_machine_.GetTape();
+  index_of_character_being_read_ = turing_machine_.GetIndexOfScanner();
+  if (turing_machine_.IsHalted()) {
+    halting_state_to_highlight_ = turing_machine_.GetCurrentState();
+    // NOTE: Line 95-99 must not be added to StopSimulation()
+    if (!configuration_file.is_open()) {
+      std::cout << '\n';
+    } else {
+      configuration_file << "  " << "\n";
+    }
+    StopSimulation();
+  }
+}
+
+void TuringMachineSimulatorApp::HandleSettingsButtons(const glm::vec2 
+    &click_location) {
+  if (turingmachinesimulator::TuringMachineSimulatorHelper::
+      IsPointInRectangle(click_location, kBlankCharInputBox)) {
+    editing_blank_char_ = true;
+
+  } else if ((turingmachinesimulator::TuringMachineSimulatorHelper::
+      IsPointInRectangle(click_location, kExitSettingsButton))) {
+    editing_blank_char_ = false;
+    settings_is_showing_ = false;
+
+  } else if ((turingmachinesimulator::TuringMachineSimulatorHelper
+      ::IsPointInCircle(click_location, kStepThroughToggleOnCenter,
+      kStepThroughToggleRadii))) {
+    in_step_through_mode_ = true;
+
+  } else if ((turingmachinesimulator::TuringMachineSimulatorHelper
+      ::IsPointInCircle(click_location, kStepThroughToggleOffCenter,
+      kStepThroughToggleRadii))) {
+    in_step_through_mode_ = false;
   }
 }
 
@@ -514,6 +548,28 @@ void TuringMachineSimulatorApp::DisplaySettingsPage() const {
   blank_char_as_stringstream << blank_character_;
   ci::gl::drawString(blank_char_as_stringstream.str(), 
       kBlankCharInputBox.getCenter(), "black");
+  
+  // display step through toggle
+  const glm::vec2 kStepThroughLabelLocation = glm::vec2(10,
+      kStepThroughToggleOnCenter.y);
+  ci::gl::drawString("Step Through: ", kStepThroughLabelLocation,
+      "black");
+  if (in_step_through_mode_) {
+    ci::gl::color(ci::Color("mediumspringgreen"));
+  } else {
+    ci::gl::color(ci::Color("white"));
+  }
+  ci::gl::drawSolidCircle(kStepThroughToggleOnCenter, kStepThroughToggleRadii);
+  ci::gl::drawStringCentered("on", kStepThroughToggleOnCenter, 
+      "black");
+  if (in_step_through_mode_) {
+    ci::gl::color(ci::Color("white"));
+  } else {
+    ci::gl::color(ci::Color("mediumspringgreen"));
+  }
+  ci::gl::drawSolidCircle(kStepThroughToggleOffCenter, kStepThroughToggleRadii);
+  ci::gl::drawStringCentered("off", kStepThroughToggleOffCenter,
+      "black");
 }
 
 void TuringMachineSimulatorApp::DrawAddArrowMenu() const {
