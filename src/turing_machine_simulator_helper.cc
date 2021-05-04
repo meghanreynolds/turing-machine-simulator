@@ -42,9 +42,9 @@ glm::vec2 TuringMachineSimulatorHelper::GetDirectionTextLocation(const glm::vec2
   return glm::vec2(kHorizontalMidpoint, kVerticalMidpoint - kSpaceFromLine);
 }
 
-size_t TuringMachineSimulatorHelper::GetIndexOfSquareOfTapeClicked(
-    const glm::vec2 &clicked_point, size_t tape_length,
-    const glm::vec2 &tape_upper_corner, const glm::vec2 &tape_lower_corner) {
+size_t TuringMachineSimulatorHelper::GetIndexOfSquareOfTapeClicked(const 
+    glm::vec2 &clicked_point, size_t tape_length, const glm::vec2 
+    &tape_upper_corner, const glm::vec2 &tape_lower_corner) {
   // the size of the tape is returned when no squares were found to have been
   // clicked
   if (!IsPointInRectangle(clicked_point, ci::Rectf(tape_upper_corner,
@@ -115,10 +115,10 @@ void TuringMachineSimulatorHelper::AddDirection(const
   }
 }
 
-void TuringMachineSimulatorHelper::ResetTape(std::vector<char> &tape) {
-  const char kBlankCharacter = '-';
-  tape = {kBlankCharacter, kBlankCharacter, kBlankCharacter, kBlankCharacter,
-          kBlankCharacter, kBlankCharacter, kBlankCharacter, kBlankCharacter};
+void TuringMachineSimulatorHelper::ResetTape(std::vector<char> &tape, 
+    char blank_character) {
+  tape = {blank_character, blank_character, blank_character, blank_character,
+          blank_character, blank_character, blank_character, blank_character};
 }
 
 void TuringMachineSimulatorHelper::DeleteGivenState(const State &state_to_delete,
@@ -174,16 +174,16 @@ void TuringMachineSimulatorHelper::UpdateStatePosition(State &clicked_state,
 }
 
 int TuringMachineSimulatorHelper::UpdateTapeCharacter(std::vector<char> &tape,
-    int index_of_character_to_edit, char typed_char, int event_code) {
-  // on return, stop editing the tape character name
+    char blank_character, int index_of_character_to_edit, char typed_char, 
+    int event_code) {
+  // on return, stop editing the tape character
   if (event_code == ci::app::KeyEvent::KEY_RETURN) {
     return tape.size();
   }
 
   // make the character a blank character on backspace
   if (event_code == ci::app::KeyEvent::KEY_BACKSPACE) {
-    const char kBlankCharacter = '-';
-    tape[index_of_character_to_edit] = kBlankCharacter;
+    tape[index_of_character_to_edit] = blank_character;
     return index_of_character_to_edit;
   }
 
@@ -191,6 +191,25 @@ int TuringMachineSimulatorHelper::UpdateTapeCharacter(std::vector<char> &tape,
   // character entered by the user
   tape[index_of_character_to_edit] = typed_char;
   return index_of_character_to_edit;
+}
+
+std::tuple<char, bool> TuringMachineSimulatorHelper
+    ::UpdateBlankCharacter(char type_char, int event_code) {
+  // on return, stop editing the blank character
+  if (event_code == ci::app::KeyEvent::KEY_RETURN) {
+    // NOTE: the character returned here does not matter as it will not be used
+    return std::tuple<char, bool>('~', false);
+  }
+
+  // make the character a '-' character (default blank) on backspace
+  if (event_code == ci::app::KeyEvent::KEY_BACKSPACE) {
+    const char kDefaultBlank = '-';
+    return std::tuple<char, bool>(kDefaultBlank, true);
+  }
+
+  // if no special event codes were typed, change the character to be the
+  // character entered by the user
+  return std::tuple<char, bool>(type_char, true);
 }
 
 bool TuringMachineSimulatorHelper::UpdateStateName(std::vector<State> &states,

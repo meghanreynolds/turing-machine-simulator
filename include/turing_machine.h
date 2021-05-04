@@ -27,12 +27,15 @@ class TuringMachine {
      * @param directions a vector of Directions representing the directions for
      *     the turing machine
      * @param tape a vector of chars representing the tape of the turing machine
+     * @param blank_character a char representing the blank character for the
+     *     turing machine
      * @param halting_state_names a vector of strings representing the possible
      *     names for halting states
      */
     TuringMachine(const std::vector<State> &states,
         const std::vector<Direction> &directions, const std::vector<char> &tape,
-        const std::vector<std::string> &halting_state_names);
+        char blank_character, const std::vector<std::string> 
+        &halting_state_names);
     
     State GetCurrentState() const;
     
@@ -105,6 +108,11 @@ class TuringMachine {
      * vector of chars storing the tape of the turing machine
      */
     std::vector<char> tape_;
+    
+    /**
+     * char storing the turing machine's blank character
+     */
+     char blank_character_;
     
     /**
      * map storing states of the turing machine as the keys and vectors of 

@@ -97,27 +97,16 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * @param key_event a KeyEvent representing the key the user pressed
      */
     void EditTapeCharacter(const ci::app::KeyEvent &key_event);
-
-    /**
-     * This method takes in a key event and updates the state whose name is
-     * being edited's name accordingly
-     * 
-     * @param key_event a KeyEvent representing the key the user pressed
-     */
-    void EditStateName(const ci::app::KeyEvent &key_event);
-
-    /**
-     * This method takes in a key event and updates the add arrow input box that
-     * is being edited's text accordingly
-     * 
-     * @param key_event a KeyEvent representing the key the user pressed
-     */
-    void EditAddArrowInputBox(const ci::app::KeyEvent &key_event);
     
     /**
      * This method stops the simulation
      */
      void StopSimulation();
+     
+     /**
+      * This method displays the settings page
+      */
+    void DisplaySettingsPage() const;
      
     /**
      * This method draws the add arrow menu to the screen
@@ -155,16 +144,16 @@ class TuringMachineSimulatorApp : public ci::app::App {
      */
     void DrawButton(const ci::Rectf &button, const std::string &label, 
         const ci::Color &color) const;
-
+    
     /**
      * int storing the horizontal window size, must be at least 600 
      */
-    const int kHorizontalWindowSize = 1200;
+    const int kHorizontalWindowSize = 600;
     
     /**
      * int storing the vertical window size, must be at least 600 
      */
-    const int kVerticalWindowSize = 800;
+    const int kVerticalWindowSize = 600;
     
     /**
      * string storing the path the file storing the complete configurations 
@@ -184,13 +173,21 @@ class TuringMachineSimulatorApp : public ci::app::App {
     std::vector<Direction> directions_ = {};
     
     /**
-     * vector storing the characters on the tape (by default starts with 8
-     * blank characters('-'))
+     * character storing the turing machine tape's blank character
      */
-    std::vector<char> tape_ = {'-', '-', '-', '-', '-', '-', '-', '-'};
+    char blank_character_ = '0';
     
     /**
-     * NEEDS DOCS
+     * vector storing the characters on the tape (by default starts with 8
+     * blank characters)
+     */
+    std::vector<char> tape_ = {blank_character_, blank_character_, 
+                               blank_character_, blank_character_, 
+                               blank_character_, blank_character_,
+                               blank_character_, blank_character_};
+    
+    /**
+     * vector storing the strings that can be the names of halting states
      */
      std::vector<std::string> halting_state_names_ = {"qh", "qAccept", "qReject"};
      
@@ -225,12 +222,22 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * a size_t tracking the number of times the halting state has been 
      * highlighted
      */
-     size_t num_times_halting_state_higlighted_ = 0;
+     size_t num_times_halting_state_highlighted_ = 0;
      
     /**
      * bool that is true if a turing machine is being simulated
      */
      bool simulation_is_in_progress_ = false;
+     
+     /**
+      * bool that is true if the settings page is being displayed
+      */
+     bool settings_is_showing_ = false;
+     
+     /**
+      * bool that is true if the blank character is being edited
+      */
+     bool editing_blank_char_ = false;
 
     /**
      * size_t storing the index of the character the scanner is reading
@@ -566,6 +573,58 @@ class TuringMachineSimulatorApp : public ci::app::App {
      */
     const ci::Rectf kStopSimulationButton = ci::Rectf(kUpperCornerStopButton, 
         kLowerCornerStopButton);
+    
+    /**
+     * vec2 storing the upper left corner of the settings button
+     */
+    const glm::vec2 kUpperCornerSettingsButton = glm::vec2(kHorizontalWindowSize 
+        - 55, 0);
+    
+    /**
+     * vec2 storing the lower right corner of the settings button
+     */
+    const glm::vec2 kLowerCornerSettingsButton = glm::vec2(kHorizontalWindowSize, 
+        40);
+    
+    /**
+     * Rectf storing the settings button
+     */
+    const ci::Rectf kSettingsButton = ci::Rectf(kUpperCornerSettingsButton, 
+        kLowerCornerSettingsButton);
+    
+    /**
+     * vec2 storing the upper left corner of the blank character input box
+     */
+    const glm::vec2 kUpperCornerBlankCharBox = glm::vec2(110, 30);
+    
+    /**
+     * vec2 storing the lower right corner of the blank character input box
+     */
+    const glm::vec2 kLowerCornerBlankCharBox = glm::vec2(150, 60);
+    
+    /**
+     * Rect storing the blank character input box
+     */
+    const ci::Rectf kBlankCharInputBox = ci::Rectf(kUpperCornerBlankCharBox, 
+        kLowerCornerBlankCharBox);
+    
+    /**
+     * vec2 storing the upper left corner of the exit settings button
+     */
+    const glm::vec2 kUpperCornerExitSettingsButton = 
+        glm::vec2(kHorizontalWindowSize - 40, 0);
+    
+    /**
+     * vec2 storing the lower right corner of the exit settings button
+     */
+    const glm::vec2 kLowerCornerExitSettingsButton = 
+        glm::vec2(kHorizontalWindowSize, 40);
+    
+    /**
+     * Rectf storing the exit settings button
+     */
+    const ci::Rectf kExitSettingsButton = 
+        ci::Rectf(kUpperCornerExitSettingsButton, kLowerCornerExitSettingsButton);
 };
 
 } // namespace turingmachinesimulator

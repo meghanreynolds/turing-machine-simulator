@@ -12,6 +12,7 @@ using namespace turingmachinesimulator;
  * Configuration Is Produced Correctly For Markdown Files
  */
 TEST_CASE("Test Turing Machine Creation") {
+  const char kBlankChar = '0';
   const std::vector<std::string> kHaltingStateNames = {"qh", "qAccept",
       "qReject"};
   const State kStartingState = State(1, "q1", 
@@ -28,7 +29,7 @@ TEST_CASE("Test Turing Machine Creation") {
     const std::vector<Direction> kDirections = {kDirectionOne};
     const std::vector<char> kTape = {};
     const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections, 
-        kTape, kHaltingStateNames);
+        kTape, kBlankChar, kHaltingStateNames);
     REQUIRE(kTuringMachine.IsEmpty());
     REQUIRE(kTuringMachine.GetErrorMessage() == "Must Have Starting State");
   }
@@ -42,7 +43,7 @@ TEST_CASE("Test Turing Machine Creation") {
     const std::vector<Direction> kDirections = {kDirectionOne};
     const std::vector<char> kTape = {};
     const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections,
-        kTape, kHaltingStateNames);
+        kTape, kBlankChar, kHaltingStateNames);
     REQUIRE(kTuringMachine.IsEmpty());
     REQUIRE(kTuringMachine.GetErrorMessage()
         == "Cannot Have More Than 1 Starting State");
@@ -55,7 +56,7 @@ TEST_CASE("Test Turing Machine Creation") {
     const std::vector<Direction> kDirections = {kDirectionOne};
     const std::vector<char> kTape = {};
     const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections,
-        kTape, kHaltingStateNames);
+        kTape, kBlankChar, kHaltingStateNames);
     REQUIRE(kTuringMachine.IsEmpty());
     REQUIRE(kTuringMachine.GetErrorMessage() == "Must Have Starting State");
   }
@@ -70,7 +71,7 @@ TEST_CASE("Test Turing Machine Creation") {
     const std::vector<Direction> kDirections = {kDirectionOne, kDirectionTwo};
     const std::vector<char> kTape = {};
     const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections,
-        kTape, kHaltingStateNames);
+        kTape, kBlankChar, kHaltingStateNames);
     REQUIRE(kTuringMachine.IsEmpty());
     REQUIRE(kTuringMachine.GetErrorMessage() ==
         "Must Not Have 2 Directions With Same Read Condition From The Same "
@@ -86,7 +87,7 @@ TEST_CASE("Test Turing Machine Creation") {
     const std::vector<Direction> kDirections = {kDirectionOne, kDirectionTwo};
     const std::vector<char> kTape = {};
     const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections,
-            kTape, kHaltingStateNames);
+        kTape, kBlankChar, kHaltingStateNames);
     
     // check turing machine is not empty and has no errors
     REQUIRE(kTuringMachine.IsEmpty() == false);
@@ -144,7 +145,7 @@ TEST_CASE("Test Turing Machine Creation") {
     const std::vector<Direction> kDirections = {kDirectionOne, kDirectionTwo};
     const std::vector<char> kTape = {1, 0, 1, 1};
     const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections,
-        kTape, kHaltingStateNames);
+        kTape, kBlankChar, kHaltingStateNames);
     
     // check turing machine is not empty and has no errors
     REQUIRE(kTuringMachine.IsEmpty() == false);
@@ -199,7 +200,7 @@ TEST_CASE("Test Turing Machine Creation") {
     const std::vector<Direction> kDirections = {};
     const std::vector<char> kTape = {'-'};
     const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections, 
-        kTape, kHaltingStateNames);
+        kTape, kBlankChar, kHaltingStateNames);
     
     // check that the turing machine isn't empty and that it doesn't have errors
     REQUIRE(kTuringMachine.IsEmpty() == false);
@@ -222,6 +223,7 @@ TEST_CASE("Test Turing Machine Creation") {
 }
 
 TEST_CASE("Test Turing Machine Correctly Updates") {
+  const char kBlankChar = '-';
   const std::vector<std::string> kHaltingStateNames = {"qh", "qAccept",
       "qReject"};
   const State kStartingState = State(1, "q1",
@@ -236,7 +238,7 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
     const std::vector<Direction> kDirections = {};
     const std::vector<char> kTape = {'-'};
     TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-        kTape, kHaltingStateNames);
+        kTape, kBlankChar, kHaltingStateNames);
     turing_machine.Update();
     REQUIRE(turing_machine.IsHalted() == false);
     REQUIRE(turing_machine.GetTape() == kTape);
@@ -251,7 +253,7 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
     const std::vector<Direction> kDirections = {kDirectionOne};
     const std::vector<char> kTape = {'b', 'c', 'd'};
     TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-        kTape, kHaltingStateNames);
+        kTape, kBlankChar, kHaltingStateNames);
     turing_machine.Update();
     REQUIRE(turing_machine.IsHalted() == false);
     REQUIRE(turing_machine.GetTape() == kTape);
@@ -269,7 +271,7 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
     const std::vector<Direction> kDirections = {kDirectionOne, kDirectionTwo};
     const std::vector<char> kTape = {'0', '-'};
     TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-        kTape, kHaltingStateNames);
+        kTape, kBlankChar, kHaltingStateNames);
     // need to do 2 updates for left movement to occur
     turing_machine.Update();
     turing_machine.Update();
@@ -288,7 +290,7 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
     const std::vector<Direction> kDirections = {kDirectionOne};
     const std::vector<char> kTape = {'0', '-'};
     TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-        kTape, kHaltingStateNames);
+        kTape, kBlankChar, kHaltingStateNames);
     turing_machine.Update();
     REQUIRE(turing_machine.IsHalted() == false);
     const std::vector<char> kExpectedTape = {'1', '-'};
@@ -304,7 +306,7 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
     const std::vector<Direction> kDirections = {kDirectionOne};
     const std::vector<char> kTape = {'0', '-'};
     TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-        kTape, kHaltingStateNames);
+        kTape, kBlankChar, kHaltingStateNames);
     turing_machine.Update();
     REQUIRE(turing_machine.IsHalted() == false);
     const std::vector<char> kExpectedTape = {'1', '-'};
@@ -320,7 +322,7 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
     const std::vector<Direction> kDirections = {kDirectionOne};
     const std::vector<char> kTape = {'0', '-'};
     TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-        kTape, kHaltingStateNames);
+        kTape, kBlankChar, kHaltingStateNames);
     turing_machine.Update();
     REQUIRE(turing_machine.IsHalted() == true);
     const std::vector<char> kExpectedTape = {'1', '-'};
@@ -337,7 +339,7 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
     const std::vector<Direction> kDirections = {kDirectionOne};
     const std::vector<char> kTape = {'0', '-'};
     TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-        kTape, kHaltingStateNames);
+        kTape, kBlankChar, kHaltingStateNames);
     turing_machine.Update();
     
     // test machine halts and updates properly
@@ -362,7 +364,7 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
     const std::vector<Direction> kDirections = {kDirectionOne};
     const std::vector<char> kTape = {'0'};
     TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-        kTape, kHaltingStateNames);
+        kTape, kBlankChar, kHaltingStateNames);
     turing_machine.Update();
     REQUIRE(turing_machine.IsHalted() == false);
     const std::vector<char> kExpectedTape = {'1', '-'};
@@ -378,7 +380,7 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
     const std::vector<Direction> kDirections = {kDirectionOne};
     const std::vector<char> kTape = {'0', '-'};
     TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-        kTape, kHaltingStateNames);
+        kTape, kBlankChar, kHaltingStateNames);
     turing_machine.Update();
     REQUIRE(turing_machine.IsHalted() == false);
     const std::vector<char> kExpectedTape = {'1', '-'};
@@ -402,7 +404,7 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
         kDirectionThree, kDirectionFour};
     const std::vector<char> kTape = {'0', '-'};
     TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-        kTape, kHaltingStateNames);
+        kTape, kBlankChar, kHaltingStateNames);
     
     // test first update
     turing_machine.Update();
@@ -454,6 +456,7 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
 }
 
 TEST_CASE("Test Configuration Output For Console") {
+  const char kBlankChar = '-';
   const std::vector<std::string> kHaltingStateNames = {"qh", "qAccept",
       "qReject"};
   const State kStartingState = State(1, "q1",
@@ -475,7 +478,7 @@ TEST_CASE("Test Configuration Output For Console") {
       kDirectionThree, kDirectionFour};
   const std::vector<char> kTape = {'0', '-'};
   TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-      kTape, kHaltingStateNames);
+      kTape, kBlankChar, kHaltingStateNames);
   
   SECTION("Test Initial Position", "[console configuration]") {
     const std::string kExpectedConfiguration = ";q10-";
@@ -528,6 +531,7 @@ TEST_CASE("Test Configuration Output For Console") {
 }
 
 TEST_CASE("Test Configuration Output For Markdown Files") {
+  const char kBlankChar = '*';
   const std::vector<std::string> kHaltingStateNames = {"qh", "qAccept",
       "qReject"};
   const State kStartingState = State(1, "q1",
@@ -541,18 +545,18 @@ TEST_CASE("Test Configuration Output For Markdown Files") {
       kStartingState, kStateTwo);
   const Direction kDirectionTwo = Direction('1', '1', 'r',
       kStartingState, kStartingState);
-  const Direction kDirectionThree = Direction('-', '1', 'r',
+  const Direction kDirectionThree = Direction('*', '1', 'r',
       kStartingState, kHaltingState);
-  const Direction kDirectionFour= Direction('-', '1', 'n',
+  const Direction kDirectionFour= Direction('*', '1', 'n',
       kStateTwo, kStartingState);
   const std::vector<Direction> kDirections = {kDirectionOne, kDirectionTwo,
       kDirectionThree, kDirectionFour};
-  const std::vector<char> kTape = {'0', '-'};
+  const std::vector<char> kTape = {'0', '*'};
   TuringMachine turing_machine = TuringMachine(kStates, kDirections,
-      kTape, kHaltingStateNames);
+      kTape, kBlankChar, kHaltingStateNames);
 
   SECTION("Test Initial Position", "[markdown configuration]") {
-    const std::string kExpectedConfiguration = ";q<sub>1</sub>0-";
+    const std::string kExpectedConfiguration = ";q<sub>1</sub>0*";
     REQUIRE(turing_machine.GetConfigurationForMarkdown()
         == kExpectedConfiguration);
   }
@@ -560,7 +564,7 @@ TEST_CASE("Test Configuration Output For Markdown Files") {
   SECTION("Test Configuration Updates Correctly After Front Tape Expansions",
       "[markdown configuration]") {
     turing_machine.Update();
-    const std::string kExpectedConfiguration = ";q<sub>2</sub>-1-";
+    const std::string kExpectedConfiguration = ";q<sub>2</sub>*1*";
     REQUIRE(turing_machine.GetConfigurationForMarkdown()
         == kExpectedConfiguration);
   }
@@ -570,19 +574,19 @@ TEST_CASE("Test Configuration Output For Markdown Files") {
     // test second update
     turing_machine.Update();
     turing_machine.Update();
-    std::string expected_configuration = ";q<sub>1</sub>11-";
+    std::string expected_configuration = ";q<sub>1</sub>11*";
     REQUIRE(turing_machine.GetConfigurationForMarkdown()
         == expected_configuration);
 
     // test third update
     turing_machine.Update();
-    expected_configuration = ";1q<sub>1</sub>1-";
+    expected_configuration = ";1q<sub>1</sub>1*";
     REQUIRE(turing_machine.GetConfigurationForMarkdown()
         == expected_configuration);
 
     // test fourth update
     turing_machine.Update();
-    expected_configuration = ";11q<sub>1</sub>-";
+    expected_configuration = ";11q<sub>1</sub>*";
     REQUIRE(turing_machine.GetConfigurationForMarkdown()
         == expected_configuration);
   }
@@ -595,7 +599,7 @@ TEST_CASE("Test Configuration Output For Markdown Files") {
     turing_machine.Update();
     turing_machine.Update();
     turing_machine.Update();
-    const std::string kExpectedConfiguration = ";111q<sub>h</sub>-";
+    const std::string kExpectedConfiguration = ";111q<sub>h</sub>*";
     REQUIRE(turing_machine.GetConfigurationForMarkdown()
         == kExpectedConfiguration);
   }
@@ -610,10 +614,10 @@ TEST_CASE("Test Configuration Output For Markdown Files") {
     const std::vector<Direction> kNewDirections = {kDirectionFive};
     const std::vector<char> kNewTape = {'0'};
     TuringMachine new_turing_machine = TuringMachine(kNewStates, kNewDirections, 
-        kNewTape, kHaltingStateNames);
+        kNewTape, kBlankChar, kHaltingStateNames);
     
     new_turing_machine.Update();
-    const std::string kExpectedConfiguration = ";q<sub></sub>-1";
+    const std::string kExpectedConfiguration = ";q<sub></sub>*1";
     REQUIRE(new_turing_machine.GetConfigurationForMarkdown() 
         == kExpectedConfiguration);
   }

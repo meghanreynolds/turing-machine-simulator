@@ -4,7 +4,7 @@ namespace turingmachinesimulator {
 
 TuringMachine::TuringMachine(const std::vector<State> &states,
     const std::vector<Direction> &directions, const std::vector<char> &tape,
-    const std::vector<std::string> &halting_state_names) {
+    char blank_character, const std::vector<std::string> &halting_state_names) {
   // if the given tape is empty, set it to 1 blank character (same thing as 
   // an empty tape)
   if (tape.empty()) {
@@ -55,10 +55,11 @@ TuringMachine::TuringMachine(const std::vector<State> &states,
     directions_by_state_map_[kStateToMoveFrom].push_back(kDirection);
   }
  
- // if no errors were encountered in initializing the turing machine, then it is
- // not empty and initialize the halting state name list
- is_empty_ = false;
- halting_state_names_ = halting_state_names;
+  // if no errors were encountered in initializing the turing machine, then it is
+  // not empty and initialize the blank character and halting state name list
+  is_empty_ = false;
+  blank_character_ = blank_character;
+  halting_state_names_ = halting_state_names;
 }
 
 State TuringMachine::GetCurrentState() const {
@@ -149,14 +150,13 @@ void TuringMachine::ExecuteDirection(const Direction &direction) {
   
   // move the scanner 1 index left/right and update the tape size if needed
   const char kScannerMovement = direction.GetScannerMovement();
-  const char kBlankCharacter = '-';
   const char kLeftMovement = 'l';
   if (kScannerMovement == kLeftMovement) {
     // if the scanner is at the beginning of the tape, insert a blank character
     // to index 0 in order to move left, otherwise move the scanner left (index
     // -1)
     if (index_of_scanner_ == 0) {
-      tape_.insert(tape_.begin(), kBlankCharacter);
+      tape_.insert(tape_.begin(), blank_character_);
     } else {
       index_of_scanner_ -= 1;
     }
@@ -167,7 +167,7 @@ void TuringMachine::ExecuteDirection(const Direction &direction) {
     // if the updated scanner index is larger than the length of the tape,
     // append a blank character to the tape in order to move right
     if (index_of_scanner_ >= tape_.size()) {
-      tape_.push_back(kBlankCharacter);
+      tape_.push_back(blank_character_);
     }
   }
   

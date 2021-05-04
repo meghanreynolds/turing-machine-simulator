@@ -105,8 +105,9 @@ class TuringMachineSimulatorHelper {
      * blank characters
      * 
      * @param tape a vector of characters representing the tape
+     * @param blank_character the turing machine's blank character
      */
-    static void ResetTape(std::vector<char> &tape);
+    static void ResetTape(std::vector<char> &tape, char blank_character);
     
     /**
      * This method deletes the given state from the given list of states as well
@@ -142,6 +143,8 @@ class TuringMachineSimulatorHelper {
      * to the key entered by the user
      * 
      * @param tape a vector of characters representing the tape
+     * @param blank_character a char representing the turing machine's blank
+     *     character
      * @param index_of_character_to_edit an int representing the index of the
      *     character to edit
      * @param typed_char a character representing the character the user typed
@@ -149,8 +152,22 @@ class TuringMachineSimulatorHelper {
      *     entered
      * @return an int representing the updated character being edited
      */
-    static int UpdateTapeCharacter(std::vector<char> &tape, 
+    static int UpdateTapeCharacter(std::vector<char> &tape, char blank_character,
         int index_of_character_to_edit, char typed_char, int event_code);
+    
+    /**
+     * This method updates the blank character according to the key entered by
+     * the user
+     * 
+     * @param type_char a character representing the character the user typed
+     * @param event_code an int representing the event code of the key the user
+     *     typed
+     * @return a tuple with the updated character at index 0 and a bool at index
+     *     1 that is true if the character is still being edited and false 
+     *     otherwise
+     */
+    static std::tuple<char, bool> UpdateBlankCharacter(char type_char, 
+        int event_code);
 
     /**
      * This method updates the name of the given state according to the key 

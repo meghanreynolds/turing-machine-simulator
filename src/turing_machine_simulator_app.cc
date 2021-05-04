@@ -14,6 +14,11 @@ void TuringMachineSimulatorApp::draw() {
       kVerticalWindowSize);
   ci::gl::drawSolidRect(ci::Rectf(kUpperScreenCorner, kLowerScreenCorner));
   
+  if (settings_is_showing_) {
+    DisplaySettingsPage();
+    return;
+  }
+  
   // draw menu bar rectangle
   ci::gl::color(ci::Color("ghostwhite"));
   const glm::vec2 kMenuUpperCorner = glm::vec2(kMenuXBoundary, 0);
@@ -43,6 +48,10 @@ void TuringMachineSimulatorApp::draw() {
   // display reset tape button
   DrawButton(kResetTapeButton, "Reset Tape",
       ci::Color("salmon"));
+  
+  // display settings button
+  DrawButton(kSettingsButton, "Settings", 
+      ci::Color("papayawhip"));
   
   // display stop simulation button if simulation is in progress
   if (simulation_is_in_progress_) {
@@ -74,14 +83,14 @@ void TuringMachineSimulatorApp::draw() {
       ci::gl::color(ci::Color("yellow"));
       ci::gl::drawSolidCircle(kState.GetStateLocation(),
           kState.GetRadius() + kSizeOfHighlightRing);
-      num_times_halting_state_higlighted_ += 1;
+      num_times_halting_state_highlighted_ += 1;
       // note: 45 was found to be the best number of iterations for the halting
       // state to be highlighted by experimenting for best visual experience
       const int kMaxNumTimesHaltingStateHighlighted = 45;
-      if (num_times_halting_state_higlighted_ 
+      if (num_times_halting_state_highlighted_
           > kMaxNumTimesHaltingStateHighlighted) {
         halting_state_to_highlight_ = State();
-        num_times_halting_state_higlighted_ = 0;
+        num_times_halting_state_highlighted_ = 0;
       }
     }
     
@@ -156,6 +165,19 @@ void TuringMachineSimulatorApp::mouseDown(ci::app::MouseEvent event) {
     return;
   }
   
+  if (settings_is_showing_) {
+    if (turingmachinesimulator::TuringMachineSimulatorHelper::
+        IsPointInRectangle(kClickLocation, kBlankCharInputBox)) {
+      editing_blank_char_ = true;
+      
+    } else if ((turingmachinesimulator::TuringMachineSimulatorHelper::
+        IsPointInRectangle(kClickLocation, kExitSettingsButton))) {
+      editing_blank_char_ = false;
+      settings_is_showing_ = false;
+    }
+    return;
+  }
+  
   // handle clicked box event
   const bool kBoxWasClicked = HandleClickedBox(kClickLocation);
   if (kBoxWasClicked) {
@@ -202,9 +224,10 @@ void TuringMachineSimulatorApp::mouseDown(ci::app::MouseEvent event) {
 }
 
 void TuringMachineSimulatorApp::mouseDrag(ci::app::MouseEvent event) {
-  // if clicked state is empty or the simulation is in progress, 
-  // there's nothing to drag
-  if (clicked_state_.IsEmpty() || simulation_is_in_progress_) {
+  // if clicked state is empty or the simulation is in progress or the settings
+  // page is being displayed, there's nothing to drag
+  if (clicked_state_.IsEmpty() || simulation_is_in_progress_ 
+      || settings_is_showing_) {
     return;
   }
   
@@ -222,6 +245,24 @@ void TuringMachineSimulatorApp::keyDown(ci::app::KeyEvent event) {
   // NOTE: shift keys will cause major bugs in this UI if not explicitly handled
   if (kEventCode == ci::app::KeyEvent::KEY_LSHIFT 
       || kEventCode == ci::app::KeyEvent::KEY_RSHIFT) {
+    return;
+  }
+  
+  if (settings_is_showing_) {
+    if (editing_blank_char_) {
+      const std::tuple<char, bool> kUpdatedBlankCharResult = 
+          TuringMachineSimulatorHelper::UpdateBlankCharacter(event.getChar(), 
+          event.getCode());
+      const size_t kIndexOfChar = 0;
+      const size_t kIndexOfStillEditingBool = 1;
+      if (!std::get<kIndexOfStillEditingBool>(kUpdatedBlankCharResult)) {
+        editing_blank_char_ = false;
+      } else {
+        blank_character_ = std::get<kIndexOfChar>(kUpdatedBlankCharResult);
+      }
+      turingmachinesimulator::TuringMachineSimulatorHelper::ResetTape(tape_,
+          blank_character_);
+    }
     return;
   }
   
@@ -289,13 +330,14 @@ bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
     // reset all modifiable global variables when clear is clicked
     directions_ = {};
     states_ = {};
-    turingmachinesimulator::TuringMachineSimulatorHelper::ResetTape(tape_);
+    turingmachinesimulator::TuringMachineSimulatorHelper::ResetTape(tape_,
+        blank_character_);
     index_of_character_being_read_ = 0;
     simulation_is_in_progress_ = false;
     turing_machine_ = TuringMachine();
     is_first_turn_of_simulation_ = true;
     halting_state_to_highlight_ = State();
-    num_times_halting_state_higlighted_ = 0;
+    num_times_halting_state_highlighted_ = 0;
     state_id_ = 0;
     add_arrow_inputs_ = {"single char", "single char", "L/R/N", "q5", "qh"};
     index_of_add_arrow_text_to_edit = add_arrow_inputs_.size();
@@ -308,7 +350,7 @@ bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
         ::IsPointInRectangle(click_location, kSimulateButton)) {
     // create a turing machine from user-defined states, directions, and tape
     // on simulate button click
-    turing_machine_ = TuringMachine(states_, directions_, tape_, 
+    turing_machine_ = TuringMachine(states_, directions_, tape_, blank_character_,
         halting_state_names_);
     
     // if turing machine is empty, the creation of a turing machine was 
@@ -339,8 +381,13 @@ bool TuringMachineSimulatorApp::HandleClickedBox(const glm::vec2
         IsPointInRectangle(click_location, kResetTapeButton)) {
     // when the tape is reset, set the tape to all blank characters and 
     // reset scanner to index 0 of the tape
-    turingmachinesimulator::TuringMachineSimulatorHelper::ResetTape(tape_);
+    turingmachinesimulator::TuringMachineSimulatorHelper::ResetTape(tape_,
+        blank_character_);
     index_of_character_being_read_ = 0;
+    
+  } else if (turingmachinesimulator::TuringMachineSimulatorHelper::
+      IsPointInRectangle(click_location, kSettingsButton)) {
+    settings_is_showing_ = true;
   }
 
   // if a square of the tape is clicked, then the user is about to edit
@@ -415,9 +462,9 @@ bool TuringMachineSimulatorApp::HandleStateDeletion(const glm::vec2
 void TuringMachineSimulatorApp::EditTapeCharacter(const ci::app::KeyEvent
     &key_event) {
   index_of_character_being_edited_ = 
-      TuringMachineSimulatorHelper::UpdateTapeCharacter(tape_, 
-      index_of_character_being_edited_, key_event.getChar(), 
-      key_event.getCode());
+      TuringMachineSimulatorHelper::UpdateTapeCharacter(tape_, blank_character_,
+          index_of_character_being_edited_, key_event.getChar(),
+          key_event.getCode());
   if (index_of_character_being_edited_ == tape_.size()) {
     editing_tape_character_ = false;
   }
@@ -435,6 +482,38 @@ void TuringMachineSimulatorApp::StopSimulation() {
   editing_tape_character_ = false;
   editing_state_name_ = false;
   index_of_add_arrow_text_to_edit = add_arrow_inputs_.size();
+}
+
+void TuringMachineSimulatorApp::DisplaySettingsPage() const {
+  // set background color
+  ci::gl::color(ci::Color("papayawhip"));
+  const glm::vec2 kUpperScreenCorner = glm::vec2(0,0);
+  const glm::vec2 kLowerScreenCorner = glm::vec2(kHorizontalWindowSize,
+      kVerticalWindowSize);
+  const ci::Rectf kWindow = ci::Rectf(kUpperScreenCorner, kLowerScreenCorner);
+  ci::gl::drawSolidRect(kWindow);
+  
+  // display page name
+  const double kTitleXLocation = turingmachinesimulator
+      ::TuringMachineSimulatorHelper::GetCenterOfRectangle(kWindow).x;
+  const glm::vec2 kTitleLocation = glm::vec2(kTitleXLocation, 10);
+  ci::gl::drawString("SETTINGS", kTitleLocation, "black");
+  
+  // display exit button
+  DrawButton(kExitSettingsButton, "EXIT", 
+      ci::Color("firebrick"));
+  
+  // display blank char option
+  const glm::vec2 kBlankCharLabelLocation = glm::vec2(10, 
+      kBlankCharInputBox.getCenter().y);
+  ci::gl::drawString("Blank Character: ", kBlankCharLabelLocation, 
+      "black");
+  ci::gl::color(ci::Color("white"));
+  ci::gl::drawSolidRect(kBlankCharInputBox);
+  std::stringstream blank_char_as_stringstream;
+  blank_char_as_stringstream << blank_character_;
+  ci::gl::drawString(blank_char_as_stringstream.str(), 
+      kBlankCharInputBox.getCenter(), "black");
 }
 
 void TuringMachineSimulatorApp::DrawAddArrowMenu() const {

@@ -16,6 +16,7 @@ using namespace turingmachinesimulator;
  * Correctly Deletes States
  * Correctly Updates State Positions
  * Correctly Updates Tape Characters
+ * Correctly Updates The Blank Character
  * Correctly Updates State Name
  * Correctly Updates Add Arrow Input Boxes
  */
@@ -258,26 +259,26 @@ TEST_CASE("Test Resets Tape Correctly") {
   
   SECTION("Test Given An Empty Vector", "[reset tape]") {
     std::vector<char> tape_to_reset = {};
-    TuringMachineSimulatorHelper::ResetTape(tape_to_reset);
+    TuringMachineSimulatorHelper::ResetTape(tape_to_reset, kBlankCharacter);
     REQUIRE(tape_to_reset == kExpectedTape);
   }
   
   SECTION("Test Given A Vector With Less Than 8 Characters", "[reset tape]") {
     std::vector<char> tape_to_reset = {'a', 'e', 'i', 'o', 'u', 'y', '-'};
-    TuringMachineSimulatorHelper::ResetTape(tape_to_reset);
+    TuringMachineSimulatorHelper::ResetTape(tape_to_reset, kBlankCharacter);
     REQUIRE(tape_to_reset == kExpectedTape);
   }
   
   SECTION("Test Given A Vector With More THan 8 Characters", "[reset tape]") {
     std::vector<char> tape_to_reset = {'1', '2', '3', '4', '5', '6', '7', '8', 
         '9'};
-    TuringMachineSimulatorHelper::ResetTape(tape_to_reset);
+    TuringMachineSimulatorHelper::ResetTape(tape_to_reset, kBlankCharacter);
     REQUIRE(tape_to_reset == kExpectedTape);
   }
   
   SECTION("Test Given A Vector of 8 Characters", "[reset tape]") {
     std::vector<char> tape_to_reset = {'!', '@', '#', '$', '%', '^', '&', '*'};
-    TuringMachineSimulatorHelper::ResetTape(tape_to_reset);
+    TuringMachineSimulatorHelper::ResetTape(tape_to_reset, kBlankCharacter);
     REQUIRE(tape_to_reset == kExpectedTape);
   }
 }
@@ -458,12 +459,14 @@ TEST_CASE("Test Updates State Positions") {
 }
 
 TEST_CASE("Test Tape Characters Are Updated Correctly") {
+  const char kBlankChar = '0';
+  
   SECTION("Test Return Key Is Pressed", "[update tape]") {
     std::vector<char> tape = {'a', 'b', 'c'};
     int character_to_edit = 0;
     const int kReturnCode = 13;
     character_to_edit = TuringMachineSimulatorHelper::UpdateTapeCharacter(tape,
-        character_to_edit, ' ', kReturnCode);
+        kBlankChar, character_to_edit, ' ', kReturnCode);
     REQUIRE(character_to_edit == 3);
     const std::vector<char> kExpectedTape = {'a', 'b', 'c'};
     REQUIRE(tape == kExpectedTape);
@@ -474,9 +477,9 @@ TEST_CASE("Test Tape Characters Are Updated Correctly") {
     int character_to_edit = 0;
     const int kBackspaceCode = 8;
     character_to_edit = TuringMachineSimulatorHelper::UpdateTapeCharacter(tape,
-        character_to_edit, ' ', kBackspaceCode);
+        kBlankChar, character_to_edit, ' ', kBackspaceCode);
     REQUIRE(character_to_edit == 0);
-    const std::vector<char> kExpectedTape = {'-', 'b', 'c'};
+    const std::vector<char> kExpectedTape = {'0', 'b', 'c'};
     REQUIRE(tape == kExpectedTape);
   }
   
@@ -484,7 +487,7 @@ TEST_CASE("Test Tape Characters Are Updated Correctly") {
     std::vector<char> tape = {'a', 'b', 'c'};
     int character_to_edit = 2;
     character_to_edit = TuringMachineSimulatorHelper::UpdateTapeCharacter(tape,
-        character_to_edit, '2', -1);
+        kBlankChar, character_to_edit, '2', -1);
     REQUIRE(character_to_edit == 2);
     const std::vector<char> kExpectedTape = {'a', 'b', '2'};
     REQUIRE(tape == kExpectedTape);
@@ -494,7 +497,7 @@ TEST_CASE("Test Tape Characters Are Updated Correctly") {
     std::vector<char> tape = {'a', 'b', 'c'};
     int character_to_edit = 2;
     character_to_edit = TuringMachineSimulatorHelper::UpdateTapeCharacter(tape,
-        character_to_edit, 'a', -1);
+        kBlankChar, character_to_edit, 'a', -1);
     REQUIRE(character_to_edit == 2);
     const std::vector<char> kExpectedTape = {'a', 'b', 'a'};
     REQUIRE(tape == kExpectedTape);
@@ -504,10 +507,62 @@ TEST_CASE("Test Tape Characters Are Updated Correctly") {
     std::vector<char> tape = {'a', 'b', 'c'};
     int character_to_edit = 1;
     character_to_edit = TuringMachineSimulatorHelper::UpdateTapeCharacter(tape,
-        character_to_edit, '~', -1);
+        kBlankChar, character_to_edit, '~', -1);
     REQUIRE(character_to_edit == 1);
     const std::vector<char> kExpectedTape = {'a', '~', 'c'};
     REQUIRE(tape == kExpectedTape);
+  }
+}
+
+TEST_CASE("Test Correctly Updates The Blank Character") {
+  SECTION("Test Return Key Is Pressed", "[update blank char]") {
+    const int kReturnCode = 13;
+    const std::tuple<char, bool> kUpdateBlankCharResult = 
+        TuringMachineSimulatorHelper::UpdateBlankCharacter(' ', 
+        kReturnCode);
+    const size_t kIndexOfStillEditing = 1;
+    REQUIRE(std::get<kIndexOfStillEditing>(kUpdateBlankCharResult) == false);
+  }
+
+  SECTION("Test Backspace Is Pressed", "[update blank char]") {
+    const int kBackspaceCode = 8;
+    const std::tuple<char, bool> kUpdateBlankCharResult =
+        TuringMachineSimulatorHelper::UpdateBlankCharacter(' ', 
+        kBackspaceCode);
+    const size_t kIndexOfUpdatedChar = 0;
+    const size_t kIndexOfStillEditing = 1;
+    REQUIRE(std::get<kIndexOfUpdatedChar>(kUpdateBlankCharResult) == '-');
+    REQUIRE(std::get<kIndexOfStillEditing>(kUpdateBlankCharResult));
+  }
+
+  SECTION("Test Number Is Typed", "[update blank char]") {
+    const std::tuple<char, bool> kUpdateBlankCharResult =
+        TuringMachineSimulatorHelper::UpdateBlankCharacter('9', 
+        -1);
+    const size_t kIndexOfUpdatedChar = 0;
+    const size_t kIndexOfStillEditing = 1;
+    REQUIRE(std::get<kIndexOfUpdatedChar>(kUpdateBlankCharResult) == '9');
+    REQUIRE(std::get<kIndexOfStillEditing>(kUpdateBlankCharResult));
+  }
+
+  SECTION("Test Letter Is Typed", "[update blank char]") {
+    const std::tuple<char, bool> kUpdateBlankCharResult =
+        TuringMachineSimulatorHelper::UpdateBlankCharacter('b', 
+        -1);
+    const size_t kIndexOfUpdatedChar = 0;
+    const size_t kIndexOfStillEditing = 1;
+    REQUIRE(std::get<kIndexOfUpdatedChar>(kUpdateBlankCharResult) == 'b');
+    REQUIRE(std::get<kIndexOfStillEditing>(kUpdateBlankCharResult));
+  }
+
+  SECTION("Test Special Character Is Typed", "[update blank char]") {
+    const std::tuple<char, bool> kUpdateBlankCharResult =
+        TuringMachineSimulatorHelper::UpdateBlankCharacter('~', 
+        -1);
+    const size_t kIndexOfUpdatedChar = 0;
+    const size_t kIndexOfStillEditing = 1;
+    REQUIRE(std::get<kIndexOfUpdatedChar>(kUpdateBlankCharResult) == '~');
+    REQUIRE(std::get<kIndexOfStillEditing>(kUpdateBlankCharResult));
   }
 }
 
@@ -671,11 +726,12 @@ TEST_CASE("Test Updating State Names") {
     std::vector<State> states = {kStartingState, state_to_update, kHaltingState};
     const Direction kDirectionOne = Direction('0', '1', 'L',
         state_to_update, kStartingState);
-    const Direction kDirectionTwo = Direction('1', '0', 'r', state_to_update, 
-        kHaltingState);
+    const Direction kDirectionTwo = Direction('1', '0', 'r', 
+        state_to_update, kHaltingState);
     std::vector<Direction> directions = {kDirectionOne, kDirectionTwo};
     const bool kIsBeingEdited = TuringMachineSimulatorHelper::UpdateStateName
-        (states, directions, state_to_update, 'a', -1);
+        (states, directions, state_to_update, 'a', 
+         -1);
     
     REQUIRE(kIsBeingEdited);
     // check that the correct state name is updated
