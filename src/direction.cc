@@ -2,8 +2,8 @@
 
 namespace turingmachinesimulator {
 
-Direction::Direction(char read, char write, char move, 
-    const State &state_to_move_from, const State &state_to_move_to) {
+Direction::Direction(char read, char write, char move, const State 
+    &state_to_move_from, const State &state_to_move_to) {
   read_ = read;
   write_ = write;
   
@@ -20,7 +20,7 @@ Direction::Direction(char read, char write, char move,
   
   // validate state to move from/to
   if (state_to_move_from.IsEmpty() || state_to_move_to.IsEmpty()) {
-    // don't create non-empty direction object if state to move from/to state is 
+    // don't create non-empty direction object if state to move from/to is 
     // empty
     return;
   }
@@ -31,8 +31,8 @@ Direction::Direction(char read, char write, char move,
   is_empty_ = false;
 }
 
-Direction::Direction(const std::vector<std::string> &data, 
-    const std::vector<State> &possible_states) {
+Direction::Direction(const std::vector<std::string> &data, const 
+    std::vector<State> &possible_states) {
   const size_t kExpectedNumStringInputs = 5;
   if (data.size() != kExpectedNumStringInputs) {
     // do not create a non-empty direction if given wrong number data strings
@@ -91,7 +91,7 @@ Direction::Direction(const std::vector<std::string> &data,
     return;
   }
   
-  // if all data given was good, create a non-empty direction object
+  // if all data given was correct, create a non-empty direction object
   const size_t kIndexOfReadWriteChars = 0;
   read_ = kRead.at(kIndexOfReadWriteChars);
   write_ = kWrite.at(kIndexOfReadWriteChars);
@@ -142,7 +142,7 @@ bool Direction::operator==(const Direction &direction) const {
 
 bool Direction::Equals(const Direction &direction) const {
   if (direction.IsEmpty()) {
-    // if both directions are empty then they're equal, otherwise they're not
+    // if both directions are empty, then they're equal, otherwise they're not
     return is_empty_;
   }
   if (read_ == direction.GetRead() && write_ == direction.GetWrite()

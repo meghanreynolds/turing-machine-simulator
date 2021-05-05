@@ -8,14 +8,13 @@ using namespace turingmachinesimulator;
  * Partitions Testing As Follows:
  * Correctly Checks If Given Point Is In Given Rectangle
  * Correctly Checks If Given Point Is In Given Circle
- * Correctly Calculates Center Of Given Rectangle
  * Correctly Calculates Location Of Direction Text
  * Correctly Evaluates Index Of Square On Tape That Was Clicked
  * Correctly Creates Directional Arrow Given 2 Points Of a Line
- * Correctly Resets The Tape
  * Correctly Adds Directions
- * Correctly Deletes States
  * Correctly Updates State Positions
+ * Correctly Deletes States
+ * Correctly Resets Tape
  * Correctly Updates Tape Characters
  * Correctly Updates The Blank Character
  * Correctly Updates State Name
@@ -79,32 +78,6 @@ TEST_CASE("Test Checks If Given Point Is In Given Circle") {
     const double kCircleRadius = 5;
     REQUIRE(TuringMachineSimulatorHelper::IsPointInCircle(kPoint, kCircleCenter,
         kCircleRadius));
-  }
-}
-
-TEST_CASE("Test Correctly Calculates Center Of A Rectangle") {
-  SECTION("Test Given A Square", "[rectangle center]") {
-    const glm::vec2 kUpperCorner = glm::vec2(0, 0);
-    const glm::vec2 kLowerCorner = glm::vec2(100, 100);
-    const ci::Rectf kRectangle = ci::Rectf(kUpperCorner, kLowerCorner);
-    REQUIRE(TuringMachineSimulatorHelper::GetCenterOfRectangle(kRectangle) 
-        == glm::vec2(50, 50));
-  }
-  
-  SECTION("Test Length Greater Than Height", "[rectangle center]") {
-    const glm::vec2 kUpperCorner = glm::vec2(0, 0);
-    const glm::vec2 kLowerCorner = glm::vec2(100, 50);
-    const ci::Rectf kRectangle = ci::Rectf(kUpperCorner, kLowerCorner);
-    REQUIRE(TuringMachineSimulatorHelper::GetCenterOfRectangle(kRectangle) 
-        == glm::vec2(50, 25));
-  }
-  
-  SECTION("Test Height Greater Than Length", "[rectangle center]") {
-    const glm::vec2 kUpperCorner = glm::vec2(0, 0);
-    const glm::vec2 kLowerCorner = glm::vec2(25, 100);
-    const ci::Rectf kRectangle = ci::Rectf(kUpperCorner, kLowerCorner);
-    REQUIRE(TuringMachineSimulatorHelper::GetCenterOfRectangle(kRectangle)
-        == glm::vec2(12.5, 50));
   }
 }
 
@@ -276,46 +249,14 @@ TEST_CASE("Test Correctly Calculates Directional Arrow") {
   }
 }
 
-TEST_CASE("Test Resets Tape Correctly") {
-  const char kBlankCharacter = '-';
-  const std::vector<char> kExpectedTape = {kBlankCharacter, kBlankCharacter,
-      kBlankCharacter, kBlankCharacter, kBlankCharacter, kBlankCharacter, 
-      kBlankCharacter, kBlankCharacter};
-  
-  SECTION("Test Given An Empty Vector", "[reset tape]") {
-    std::vector<char> tape_to_reset = {};
-    TuringMachineSimulatorHelper::ResetTape(tape_to_reset, kBlankCharacter);
-    REQUIRE(tape_to_reset == kExpectedTape);
-  }
-  
-  SECTION("Test Given A Vector With Less Than 8 Characters", "[reset tape]") {
-    std::vector<char> tape_to_reset = {'a', 'e', 'i', 'o', 'u', 'y', '-'};
-    TuringMachineSimulatorHelper::ResetTape(tape_to_reset, kBlankCharacter);
-    REQUIRE(tape_to_reset == kExpectedTape);
-  }
-  
-  SECTION("Test Given A Vector With More THan 8 Characters", "[reset tape]") {
-    std::vector<char> tape_to_reset = {'1', '2', '3', '4', '5', '6', '7', '8', 
-        '9'};
-    TuringMachineSimulatorHelper::ResetTape(tape_to_reset, kBlankCharacter);
-    REQUIRE(tape_to_reset == kExpectedTape);
-  }
-  
-  SECTION("Test Given A Vector of 8 Characters", "[reset tape]") {
-    std::vector<char> tape_to_reset = {'!', '@', '#', '$', '%', '^', '&', '*'};
-    TuringMachineSimulatorHelper::ResetTape(tape_to_reset, kBlankCharacter);
-    REQUIRE(tape_to_reset == kExpectedTape);
-  }
-}
-
 TEST_CASE("Test Adding Directions") {
   const std::vector<std::string> kHaltingStateNames = {"qh", "qAccept",
       "qReject"};
-  const State kStartingState = State(1, "q1", 
+  const State kStartingState = State(1, "q1",
       glm::vec2(1, 1), 5, kHaltingStateNames);
-  const State kHaltingState = State(5, "qh", 
+  const State kHaltingState = State(5, "qh",
       glm::vec2(5, 6), 3, kHaltingStateNames);
-  
+
   SECTION("Test Invalid Direction Inputs", "[add direction]") {
     std::vector<Direction> directions = {};
     const std::vector<State> kStates = {};
@@ -323,16 +264,68 @@ TEST_CASE("Test Adding Directions") {
     TuringMachineSimulatorHelper::AddDirection(kInputs, directions, kStates);
     REQUIRE(directions.empty());
   }
-  
+
   SECTION("Test Valid Inputs", "[add direction]") {
     std::vector<Direction> directions = {};
     const std::vector<State> kStates = {kStartingState, kHaltingState};
     const std::vector<std::string> kInputs = {"a", "b", "l", "q1", "qh"};
     TuringMachineSimulatorHelper::AddDirection(kInputs, directions, kStates);
+    
     REQUIRE(directions.size() == 1);
-    const Direction kExpectedDirection = Direction('a', 'b', 'l', 
-        kStartingState, kHaltingState);
+    const Direction kExpectedDirection = Direction('a', 'b',
+        'l', kStartingState, kHaltingState);
     REQUIRE(directions.at(0).Equals(kExpectedDirection));
+  }
+}
+
+TEST_CASE("Test Updates State Positions") {
+  const std::vector<std::string> kHaltingStateNames = {"qh", "qAccept",
+      "qReject"};
+  const State kStartingState = State(1, "q1",
+      glm::vec2(1, 1), 5, kHaltingStateNames);
+  const State kHaltingState = State(5, "qAccept",
+      glm::vec2(5, 6), 3, kHaltingStateNames);
+
+  SECTION("Test Click Same As Current Position", "[state position]") {
+    State clicked_state = State(2, "qn",
+        glm::vec2(9, 8), 7, kHaltingStateNames);
+    std::vector<State> states = {kStartingState, kHaltingState, clicked_state};
+    const glm::vec2 kUpdatedPosition = glm::vec2(9, 8);
+    TuringMachineSimulatorHelper::UpdateStatePosition(clicked_state, states,
+        kUpdatedPosition, kHaltingStateNames);
+    const State kExpectedClickedState = State(2, "qn",
+        glm::vec2(9, 8), 7, kHaltingStateNames);
+    
+    REQUIRE(clicked_state.Equals(kExpectedClickedState));
+    REQUIRE(states.size() == 3);
+    const std::vector<State> kExpectedStates = {kStartingState, kHaltingState,
+        kExpectedClickedState};
+    for (size_t i = 0; i < kExpectedStates.size(); i++) {
+      const State kStateOutput = states.at(i);
+      const State kExpectedState = kExpectedStates.at(i);
+      REQUIRE(StateVariablesAreSame(kStateOutput, kExpectedState));
+    }
+  }
+
+  SECTION("Test Click Is A New Position", "[state position]") {
+    State clicked_state = State(2, "qn",
+        glm::vec2(9, 8), 7, kHaltingStateNames);
+    std::vector<State> states = {kStartingState, clicked_state, kHaltingState};
+    const glm::vec2 kUpdatedPosition = glm::vec2(0, 0);
+    TuringMachineSimulatorHelper::UpdateStatePosition(clicked_state, states,
+        kUpdatedPosition, kHaltingStateNames);
+    const State kExpectedClickedState = State(2, "qn",
+        glm::vec2(0, 0), 7, kHaltingStateNames);
+    
+    REQUIRE(clicked_state.Equals(kExpectedClickedState));
+    REQUIRE(states.size() == 3);
+    const std::vector<State> kExpectedStates = {kStartingState,
+        kExpectedClickedState, kHaltingState};
+    for (size_t i = 0; i < kExpectedStates.size(); i++) {
+      const State kStateOutput = states.at(i);
+      const State kExpectedState = kExpectedStates.at(i);
+      REQUIRE(StateVariablesAreSame(kStateOutput, kExpectedState));
+    }
   }
 }
 
@@ -434,52 +427,46 @@ TEST_CASE("Test State Deletion") {
   }
 }
 
-TEST_CASE("Test Updates State Positions") {
-  const std::vector<std::string> kHaltingStateNames = {"qh", "qAccept",
-      "qReject"};
-  const State kStartingState = State(1, "q1",
-      glm::vec2(1, 1), 5, kHaltingStateNames);
-  const State kHaltingState = State(5, "qAccept",
-      glm::vec2(5, 6), 3, kHaltingStateNames);
-  
-  SECTION("Test Click Same As Current Position", "[state position]") {
-    State clicked_state = State(2, "qn",
-        glm::vec2(9, 8), 7, kHaltingStateNames);
-    std::vector<State> states = {kStartingState, kHaltingState, clicked_state};
-    const glm::vec2 kUpdatedPosition = glm::vec2(9, 8);
-    TuringMachineSimulatorHelper::UpdateStatePosition(clicked_state, states, 
-        kUpdatedPosition, kHaltingStateNames);
-    const State kExpectedClickedState = State(2, "qn",
-        glm::vec2(9, 8), 7, kHaltingStateNames);
-    REQUIRE(clicked_state.Equals(kExpectedClickedState));
-    REQUIRE(states.size() == 3);
-    const std::vector<State> kExpectedStates = {kStartingState, kHaltingState, 
-        kExpectedClickedState};
-    for (size_t i = 0; i < kExpectedStates.size(); i++) {
-      const State kStateOutput = states.at(i);
-      const State kExpectedState = kExpectedStates.at(i);
-      REQUIRE(StateVariablesAreSame(kStateOutput, kExpectedState));
-    }
+TEST_CASE("Test Resets Tape Correctly") {
+  const char kBlankCharacter = '-';
+  const std::vector<char> kExpectedTape = {kBlankCharacter, kBlankCharacter,
+      kBlankCharacter, kBlankCharacter, kBlankCharacter, kBlankCharacter,
+      kBlankCharacter, kBlankCharacter};
+
+  SECTION("Test Given An Empty Vector", "[reset tape]") {
+    std::vector<char> tape_to_reset = {};
+    TuringMachineSimulatorHelper::ResetTape(tape_to_reset, kBlankCharacter);
+    REQUIRE(tape_to_reset == kExpectedTape);
+  }
+
+  SECTION("Test Given A Vector With Less Than 8 Characters", "[reset tape]") {
+    std::vector<char> tape_to_reset = {'a', 'e', 'i', 'o', 'u', 'y', '-'};
+    TuringMachineSimulatorHelper::ResetTape(tape_to_reset, kBlankCharacter);
+    REQUIRE(tape_to_reset == kExpectedTape);
+  }
+
+  SECTION("Test Given A Vector With More THan 8 Characters", "[reset tape]") {
+    std::vector<char> tape_to_reset = {'1', '2', '3', '4', '5', '6', '7', '8',
+        '9'};
+    TuringMachineSimulatorHelper::ResetTape(tape_to_reset, kBlankCharacter);
+    REQUIRE(tape_to_reset == kExpectedTape);
+  }
+
+  SECTION("Test Given A Vector of 8 Characters", "[reset tape]") {
+    std::vector<char> tape_to_reset = {'!', '@', '#', '$', '%', '^', '&', '*'};
+    TuringMachineSimulatorHelper::ResetTape(tape_to_reset, kBlankCharacter);
+    REQUIRE(tape_to_reset == kExpectedTape);
   }
   
-  SECTION("Test Click Is A New Position", "[state position]") {
-    State clicked_state = State(2, "qn",
-        glm::vec2(9, 8), 7, kHaltingStateNames);
-    std::vector<State> states = {kStartingState, clicked_state, kHaltingState};
-    const glm::vec2 kUpdatedPosition = glm::vec2(0, 0);
-    TuringMachineSimulatorHelper::UpdateStatePosition(clicked_state, states,
-        kUpdatedPosition, kHaltingStateNames);
-    const State kExpectedClickedState = State(2, "qn",
-        glm::vec2(0, 0), 7, kHaltingStateNames);
-    REQUIRE(clicked_state.Equals(kExpectedClickedState));
-    REQUIRE(states.size() == 3);
-    const std::vector<State> kExpectedStates = {kStartingState, 
-        kExpectedClickedState, kHaltingState};
-    for (size_t i = 0; i < kExpectedStates.size(); i++) {
-      const State kStateOutput = states.at(i);
-      const State kExpectedState = kExpectedStates.at(i);
-      REQUIRE(StateVariablesAreSame(kStateOutput, kExpectedState));
-    }
+  SECTION("Test Given Blank Character Other Than '-'", "[reset tape]") {
+    const char kNewBlankChar = '0';
+    const std::vector<char> kNewExpectedTape = {kNewBlankChar, kNewBlankChar, 
+        kNewBlankChar, kNewBlankChar, kNewBlankChar, kNewBlankChar, 
+        kNewBlankChar, kNewBlankChar};
+    std::vector<char> tape_to_reset = {'1', '-', '0', '7', 'a', '&', '1', '7', 
+        'z'};
+    TuringMachineSimulatorHelper::ResetTape(tape_to_reset, kNewBlankChar);
+    REQUIRE(tape_to_reset == kNewExpectedTape);
   }
 }
 

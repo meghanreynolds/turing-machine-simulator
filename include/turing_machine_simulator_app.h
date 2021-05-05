@@ -57,8 +57,8 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * This method overrides the keyDown function of a cinder app to respond to 
      * the users' keyboard input
      * 
-     * @param event a KeyEvent containing information about what the key the user
-     *     touched
+     * @param event a KeyEvent containing information about what the key the 
+     *     user pressed
      */
     void keyDown(ci::app::KeyEvent event) override;
 
@@ -67,6 +67,14 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * This method executes 1 direction in the user-defined turing machine
      */
     void PerformTuringMachineStep();
+    
+    /**
+     * This method takes in the location of the user's click and handles the
+     * event if a button for the simulation was clicked
+     * 
+     * @param click_location a vec2 representing where the user clicked
+     */
+    void HandleSimulationButtons(const glm::vec2 &click_location);
     
     /**
      * This method takes in the location of the user's click and handles the 
@@ -78,10 +86,10 @@ class TuringMachineSimulatorApp : public ci::app::App {
     
     /**
     * This method takes in the location of the user's click and handles the 
-    * event if a box was clicked
+    * event if a box on the canvas was clicked
     * 
     * @param click_location a vec2 representing where the user clicked
-    * @return a bool that is true if a box was clicked, false otherwise
+    * @return a bool that is true if a box was clicked and false otherwise
     */
     bool HandleClickedBox(const glm::vec2 &click_location);
 
@@ -99,9 +107,17 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * event if the user is trying to delete a state
      * 
      * @param click_location a vec2 representing the location of the user's click
-     * @return a bool that is true if a state was deleted, false otherwise
+     * @return a bool that is true if a state was deleted and false otherwise
      */
     bool HandleStateDeletion(const glm::vec2 &click_location);
+    
+    /**
+     * This method takes in a key event and updates the blank character of the
+     * turing machine accordingly
+     * 
+     * @param key_event a KeyEvent representing the key the user pressed
+     */
+    void EditBlankCharacter(const ci::app::KeyEvent &key_event);
 
     /**
      * This method takes in a key event and updates the character on the tape
@@ -112,13 +128,18 @@ class TuringMachineSimulatorApp : public ci::app::App {
     void EditTapeCharacter(const ci::app::KeyEvent &key_event);
     
     /**
+     * This method begins the simulation
+     */
+    void StartSimulation();
+    
+    /**
      * This method stops the simulation
      */
      void StopSimulation();
      
-     /**
-      * This method displays the settings page
-      */
+    /**
+     * This method displays the settings page
+     */
     void DisplaySettingsPage() const;
      
     /**
@@ -128,7 +149,6 @@ class TuringMachineSimulatorApp : public ci::app::App {
 
     /**
      * This method draws an arrow on the screen for each user-defined direction
-     * 
      * NOTE: this method is inside of this class and not the direction class to 
      * allow users to update state locations even after defining directions 
      * for that state
@@ -153,7 +173,7 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * 
      * @param button a Rectf representing the button to be drawn
      * @param label a string representing the label for the button
-     * @param color a Color reprsenting the color of the button
+     * @param color a Color representing the color of the button
      */
     void DrawButton(const ci::Rectf &button, const std::string &label, 
         const ci::Color &color) const;
@@ -202,11 +222,11 @@ class TuringMachineSimulatorApp : public ci::app::App {
     /**
      * vector storing the strings that can be the names of halting states
      */
-     std::vector<std::string> halting_state_names_ = {"qh", "qAccept", "qReject"};
+    std::vector<std::string> halting_state_names_ = {"qh", "qAccept", "qReject"};
      
-   /**
-    * TuringMachine storing the user defined Turing Machine
-    */
+    /**
+     * TuringMachine storing the user defined Turing Machine
+     */
     TuringMachine turing_machine_ = TuringMachine();
 
     /**
@@ -221,24 +241,8 @@ class TuringMachineSimulatorApp : public ci::app::App {
      */
     int num_simulations_run_ = 0;
      
-     /**
-     * a boolean that is true if it is the simulation has just begun
-     */
-    bool is_first_turn_of_simulation_ = true;
-
     /**
-     * a State that stores the halting state that the simulation ended on
-     */
-    State halting_state_to_highlight_ = State();
-    
-    /**
-     * a size_t tracking the number of times the halting state has been 
-     * highlighted
-     */
-     size_t num_times_halting_state_highlighted_ = 0;
-     
-    /**
-     * bool that is true if a turing machine is being simulated
+     * bool that is true if a turing machine is currently being simulated
      */
      bool simulation_is_in_progress_ = false;
 
@@ -251,11 +255,22 @@ class TuringMachineSimulatorApp : public ci::app::App {
       * bool that is true if the settings page is being displayed
       */
      bool settings_is_showing_ = false;
-     
-     /**
-      * bool that is true if the blank character is being edited
-      */
-     bool editing_blank_char_ = false;
+
+    /**
+     * bool that is true if the simulation has just begun
+     */
+    bool is_first_turn_of_simulation_ = true;
+
+    /**
+     * State that stores the halting state that the simulation ended on
+     */
+    State halting_state_to_highlight_ = State();
+
+    /**
+     * size_t tracking the number of times the halting state has been 
+     * highlighted
+     */
+    size_t num_times_halting_state_highlighted_ = 0;
 
     /**
      * size_t storing the index of the character the scanner is reading
@@ -280,16 +295,21 @@ class TuringMachineSimulatorApp : public ci::app::App {
     State clicked_state_ = State();
 
     /**
+     * bool that is true if the blank character is being edited
+     */
+    bool editing_blank_char_ = false;
+
+    /**
      * bool storing whether or not a tape character is being edited
      */
     bool editing_tape_character_ = false;
     
     /**
-     * size_t storing the index of the character that is being edited
-     * This is equal to the size of the tap when there are no characters being 
-     * edited
+     * size_t storing the index of the character on the tape that is being 
+     * edited. This is equal to the size of the tape when there are no 
+     * characters being edited
      */
-     size_t index_of_character_being_edited_ = tape_.size();
+    size_t index_of_tape_character_being_edited_ = tape_.size();
     
     /**
      * bool storing whether or not a state name is currently being edited
@@ -297,14 +317,14 @@ class TuringMachineSimulatorApp : public ci::app::App {
     bool editing_state_name_ = false;
     
     /**
-     * State storing the state whose name is being modified, empty if a state 
+     * State storing the state whose name is being modified, empty if a state's 
      * name is not currently being edited
      */
     State state_being_modified_ = State();
     
     /**
-     * size_t storing the index of the add arrow box input text to edit,
-     * value is size of add arrow inputs when no add arrow text is being edited
+     * size_t storing the index of the add arrow box text to edit. This value is
+     * the size of add arrow inputs when no add arrow text is being edited
      */
     size_t index_of_add_arrow_text_to_edit = add_arrow_inputs_.size();
     
@@ -315,38 +335,38 @@ class TuringMachineSimulatorApp : public ci::app::App {
     /**
      * int storing the x boundary for the menu
      */
-    const int kMenuXBoundary = (int) kHorizontalWindowSize 
-        - (kHorizontalWindowSize / 5);
+    const int kMenuXBoundary = (int) (kHorizontalWindowSize 
+        - (kHorizontalWindowSize / 5));
 
     /**
      * int storing the radius of the states in the app
      */
-    const int kRadiusOfStates = (int) (kHorizontalWindowSize - kMenuXBoundary) 
-        / 4;
+    const int kRadiusOfStates = (int) ((kHorizontalWindowSize - kMenuXBoundary) 
+        / 4);
 
     /**
      * int soring the x coordinate of the example states
      */
-    const int kXLocationOfExampleStates = (int) kHorizontalWindowSize - 
-        (kRadiusOfStates * 2);
+    const int kXLocationOfExampleStates = (int) kHorizontalWindowSize 
+        - (kRadiusOfStates * 2);
 
     /**
      * vec2 storing the coordinates of the center of the example starting state
      */
     const glm::vec2 kLocationOfQ1 = glm::vec2(kXLocationOfExampleStates,
-        (int) kVerticalWindowSize / 8);
+        (int) (kVerticalWindowSize / 8));
 
     /**
      * vec2 storing the coordinates of the center of the example nth state
      */
     const glm::vec2 kLocationOfQn = glm::vec2(kXLocationOfExampleStates,
-        (int) 3 * (kVerticalWindowSize / 8));
+        (int) (3 * (kVerticalWindowSize / 8)));
 
     /**
      * vec2 storing the coordinates of the center of the example halting state
      */
     const glm::vec2 kLocationOfQh = glm::vec2(kXLocationOfExampleStates,
-        (int) 5 * (kVerticalWindowSize / 8));
+        (int) (5 * (kVerticalWindowSize / 8)));
 
     /**
      * State storing the example starting state
@@ -369,13 +389,13 @@ class TuringMachineSimulatorApp : public ci::app::App {
     /**
      * int storing the x boundary for the add arrow box
      */
-    const int kAddArrowBoxXBoundary = (int) kHorizontalWindowSize - (2 
-        * (kHorizontalWindowSize / 5));
+    const int kAddArrowBoxXBoundary = (int) (kHorizontalWindowSize - (2 
+        * (kHorizontalWindowSize / 5)));
     
     /**
      * int storing the y boundary for the add arrow box
      */
-    const int kAddArrowBoxYBoundary = (int) 6 * (kVerticalWindowSize / 8);
+    const int kAddArrowBoxYBoundary = (int) (6 * (kVerticalWindowSize / 8));
 
     /**
      * size_t storing the index of read input in add_arrow_inputs_
@@ -423,8 +443,8 @@ class TuringMachineSimulatorApp : public ci::app::App {
     /**
      * vec2 storing the upper left corner of the write input box
      */
-    const glm::vec2 kUpperCornerOfWriteInput = glm::vec2(kAddArrowBoxXBoundary
-        + 40, kAddArrowBoxYBoundary + 40);
+    const glm::vec2 kUpperCornerOfWriteInput = glm::vec2
+        (kAddArrowBoxXBoundary + 40, kAddArrowBoxYBoundary + 40);
     
     /**
      * vec2 storing the lower right corner of the write input box
@@ -541,8 +561,8 @@ class TuringMachineSimulatorApp : public ci::app::App {
     /**
      * vec2 storing the simulate button
      */
-     const ci::Rectf kSimulateButton = ci::Rectf(kUpperCornerSimulateButton, 
-         kLowerCornerSimulateButton);
+    const ci::Rectf kSimulateButton = ci::Rectf(kUpperCornerSimulateButton, 
+        kLowerCornerSimulateButton);
     
     /**
      * vec2 storing the upper left corner of the tape
@@ -559,20 +579,20 @@ class TuringMachineSimulatorApp : public ci::app::App {
     /**
      * vec2 storing the upper left corner of the reset tape button 
      */
-    const glm::vec2 kUpperCornerOfResetTapeButton = 
-        glm::vec2(kUpperCornerOfTape.x , kUpperCornerOfTape.y - 90);
+    const glm::vec2 kUpperCornerResetTapeButton = glm::vec2(kUpperCornerOfTape.x,
+        kUpperCornerOfTape.y - 90);
     
     /**
      * vec2 storing the lower right corner of the reset tape button
      */
-    const glm::vec2 kLowerCornerOfResetTapeButton = 
-        glm::vec2(kUpperCornerOfTape.x + 80, kUpperCornerOfTape.y - 10);
+    const glm::vec2 kLowerCornerResetTapeButton = glm::vec2(kUpperCornerOfTape.x 
+        + 80, kUpperCornerOfTape.y - 10);
     
     /**
      * Rectf storing the reset tape button
      */
-    const ci::Rectf kResetTapeButton = ci::Rectf(kUpperCornerOfResetTapeButton,
-        kLowerCornerOfResetTapeButton);
+    const ci::Rectf kResetTapeButton = ci::Rectf(kUpperCornerResetTapeButton,
+        kLowerCornerResetTapeButton);
     
     /**
      * vec2 storing the upper left corner of the stop simulation button
@@ -595,14 +615,14 @@ class TuringMachineSimulatorApp : public ci::app::App {
     /**
      * vec2 storing the upper left corner of the step through button
      */
-    const glm::vec2 kUpperCornerStepThroughButton = 
-        glm::vec2(kUpperCornerStopButton.x - 80, kUpperCornerStopButton.y);
+    const glm::vec2 kUpperCornerStepThroughButton = glm::vec2(
+        kUpperCornerStopButton.x - 80, kUpperCornerStopButton.y);
     
     /**
      * vec2 storing the lower right corner of the step through button
      */
-    const glm::vec2 kLowerCornerStepThroughButton = 
-        glm::vec2(kUpperCornerStopButton.x, kLowerCornerStopButton.y);
+    const glm::vec2 kLowerCornerStepThroughButton = glm::vec2(
+        kUpperCornerStopButton.x, kLowerCornerStopButton.y);
     
     /**
      * Rectf storing the step through button
@@ -639,7 +659,7 @@ class TuringMachineSimulatorApp : public ci::app::App {
     const glm::vec2 kLowerCornerBlankCharBox = glm::vec2(150, 60);
     
     /**
-     * Rect storing the blank character input box
+     * Rectf storing the blank character input box
      */
     const ci::Rectf kBlankCharInputBox = ci::Rectf(kUpperCornerBlankCharBox, 
         kLowerCornerBlankCharBox);
@@ -647,20 +667,20 @@ class TuringMachineSimulatorApp : public ci::app::App {
     /**
      * vec2 storing the upper left corner of the exit settings button
      */
-    const glm::vec2 kUpperCornerExitSettingsButton = 
-        glm::vec2(kHorizontalWindowSize - 40, 0);
+    const glm::vec2 kUpperCornerExitSettingsButton = glm::vec2(
+        kHorizontalWindowSize - 40, 0);
     
     /**
      * vec2 storing the lower right corner of the exit settings button
      */
-    const glm::vec2 kLowerCornerExitSettingsButton = 
-        glm::vec2(kHorizontalWindowSize, 40);
+    const glm::vec2 kLowerCornerExitSettingsButton = glm::vec2(
+        kHorizontalWindowSize, 40);
     
     /**
      * Rectf storing the exit settings button
      */
-    const ci::Rectf kExitSettingsButton = 
-        ci::Rectf(kUpperCornerExitSettingsButton, kLowerCornerExitSettingsButton);
+    const ci::Rectf kExitSettingsButton = ci::Rectf(
+        kUpperCornerExitSettingsButton, kLowerCornerExitSettingsButton);
     
     /**
      * vec2 storing the center of the step through toggle on circle
@@ -676,7 +696,6 @@ class TuringMachineSimulatorApp : public ci::app::App {
      * double storing the radii of the step through toggles
      */
     const double kStepThroughToggleRadii = 10;
-
 };
 
 } // namespace turingmachinesimulator

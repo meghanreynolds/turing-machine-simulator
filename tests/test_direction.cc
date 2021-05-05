@@ -6,16 +6,79 @@ using namespace turingmachinesimulator;
 
 /**
  * Partitions Test As Follows:
- * Direction Object Correctly Created From Vectors
  * Direction Object Correctly Created From Given Characters and States
+ * Direction Object Correctly Created From Vectors
  * String Representation Correctly Created 
  * Equality Operator Correctly Overloaded
- * Direction Objects Are Correctly Compared For Equality
+ * Direction Objects Are Correctly Compared For Equality With Equals Method
  */
+TEST_CASE("Test Direction Is Correctly Created From Characters And States") {
+  const std::vector<std::string> kHaltingStateNames = {"qh", "qAccept",
+      "qReject"};
+
+  SECTION("Test Scanner Movement Character Is Not l/r/n", "[initialization]"
+      "[empty]") {
+    const State kState = State(1, "q1",
+        glm::vec2(1, 1), 5, kHaltingStateNames);
+    const State kStateTwo = State(2, "q2",
+        glm::vec2(1, 2), 5, kHaltingStateNames);
+    const Direction kDirection = Direction('a', 'b', 'c',
+        kState, kStateTwo);
+    REQUIRE(kDirection.IsEmpty());
+  }
+
+  SECTION("Test State To Move From Is Empty", "[initialization][empty]") {
+    const State kState = State();
+    const State kStateTwo = State(1, "q1",
+        glm::vec2(1, 1), 5, kHaltingStateNames);
+    const Direction kDirection = Direction('a', 'b', 'l',
+        kState, kStateTwo);
+    REQUIRE(kDirection.IsEmpty());
+  }
+
+  SECTION("Test State To Move To Is Empty", "[initialization][empty]") {
+    const State kState = State(1, "q1",
+        glm::vec2(1, 1), 5, kHaltingStateNames);
+    const State kStateTwo = State();
+    const Direction kDirection = Direction('a', 'b', 'l',
+        kState, kStateTwo);
+    REQUIRE(kDirection.IsEmpty());
+  }
+
+  SECTION("Test All Information Is Correct", "[initialization]") {
+    const State kState = State(2, "q2",
+        glm::vec2(1, 1), 5, kHaltingStateNames);
+    const State kStateTwo = State(1, "q1",
+        glm::vec2(1, 1), 5, kHaltingStateNames);
+    const Direction kDirection = Direction('a', 'b', 'l',
+        kState, kStateTwo);
+    REQUIRE(kDirection.GetRead() == 'a');
+    REQUIRE(kDirection.GetWrite() == 'b');
+    REQUIRE(kDirection.GetScannerMovement() == 'l');
+    REQUIRE(kDirection.GetStateToMoveFrom().Equals(kState));
+    REQUIRE(kDirection.GetStateToMoveTo().Equals(kStateTwo));
+  }
+
+  SECTION("Test With Capital Scanner Movement Char", "[initialization]") {
+    const State kState = State(2, "q2",
+        glm::vec2(1, 1), 5, kHaltingStateNames);
+    const State kStateTwo = State(1, "q1",
+        glm::vec2(1, 1), 5, kHaltingStateNames);
+    const Direction kDirection = Direction('a', 'b', 'R',
+        kState, kStateTwo);
+    REQUIRE(kDirection.GetRead() == 'a');
+    REQUIRE(kDirection.GetWrite() == 'b');
+    REQUIRE(kDirection.GetScannerMovement() == 'r');
+    REQUIRE(kDirection.GetStateToMoveFrom().Equals(kState));
+    REQUIRE(kDirection.GetStateToMoveTo().Equals(kStateTwo));
+  }
+}
+
 TEST_CASE("Test Direction Object Is Created Correctly From Vectors") {
   const std::vector<std::string> kHaltingStateNames = {"qh", "qAccept", 
       "qReject"};
-  SECTION("Test Wrong Input String Vector Is Too Small", "[initialization]") {
+  
+  SECTION("Test Input String Vector Is Too Small", "[initialization][empty]") {
     const std::vector<std::string> kInputs = {"a", "b", "l", "q1"};
     const std::vector<State> kPossibleStates = {State(1, "q1", 
         glm::vec2(0,0), 5, kHaltingStateNames)};
@@ -23,7 +86,7 @@ TEST_CASE("Test Direction Object Is Created Correctly From Vectors") {
     REQUIRE(kDirection.IsEmpty());
   }
 
-  SECTION("Test Wrong Input String Vector Is Too Large", "[initialization]") {
+  SECTION("Test Input String Vector Is Too Large", "[initialization][empty]") {
     const std::vector<std::string> kInputs = {"a", "b", "l", "q1", "qh",
         "random"};
     State kQ1 = State(1, "q1", 
@@ -142,7 +205,7 @@ TEST_CASE("Test Direction Object Is Created Correctly From Vectors") {
     REQUIRE(kDirection.IsEmpty());
   }
   
-  SECTION("Test Where Shift String Has Capital", "[initialization][empty]") {
+  SECTION("Test Shift String Has Capital", "[initialization]") {
     const std::vector<std::string> kInputs = {"a", "b", "L", "q1", "qh"};
     State kQ1 = State(1, "q1",
         glm::vec2(0, 0), 5, kHaltingStateNames);
@@ -158,7 +221,7 @@ TEST_CASE("Test Direction Object Is Created Correctly From Vectors") {
     REQUIRE(kDirection.GetStateToMoveTo().Equals(kQh));
   }
 
-  SECTION("Test Where Shift String Has Lowercase", "[initialization][empty]") {
+  SECTION("Test Shift String Has Lowercase", "[initialization]") {
     const std::vector<std::string> kInputs = {"a", "b", "n", "q1", "qh"};
     State kQ1 = State(1, "q1",
         glm::vec2(0, 0), 5, kHaltingStateNames);
@@ -172,67 +235,6 @@ TEST_CASE("Test Direction Object Is Created Correctly From Vectors") {
     REQUIRE(kDirection.GetScannerMovement() == 'n');
     REQUIRE(kDirection.GetStateToMoveFrom().Equals(kQ1));
     REQUIRE(kDirection.GetStateToMoveTo().Equals(kQh));
-  }
-}
-
-TEST_CASE("Test Direction Is Correctly Created From Chars And States") {
-  const std::vector<std::string> kHaltingStateNames = {"qh", "qAccept",
-      "qReject"};
-  
-  SECTION("Test Scanner Movement Char Is Not l/r/n", "[initialization]") {
-    const State kState = State(1, "q1", 
-        glm::vec2(1, 1), 5, kHaltingStateNames);
-    const State kStateTwo = State(2, "q2",
-        glm::vec2(1, 2), 5, kHaltingStateNames);
-    const Direction kDirection = Direction('a', 'b', 'c', 
-        kState, kStateTwo);
-    REQUIRE(kDirection.IsEmpty());
-  }
-
-  SECTION("Test State To Move From Is Empty", "[initialization]") {
-    const State kState = State();
-    const State kStateTwo = State(1, "q1",
-        glm::vec2(1, 1), 5, kHaltingStateNames);
-    const Direction kDirection = Direction('a', 'b', 'l',
-        kState, kStateTwo);
-    REQUIRE(kDirection.IsEmpty());
-  }
-  
-  SECTION("Test State To Move To Is Empty", "[initialization]") {
-    const State kState = State(1, "q1",
-        glm::vec2(1, 1), 5, kHaltingStateNames);
-    const State kStateTwo = State();
-    const Direction kDirection = Direction('a', 'b', 'l',
-        kState, kStateTwo);
-    REQUIRE(kDirection.IsEmpty());
-  }
-  
-  SECTION("Test All Information Is Correct", "[initialization]") {
-    const State kState = State(2, "q2",
-        glm::vec2(1, 1), 5, kHaltingStateNames);
-    const State kStateTwo = State(1, "q1",
-        glm::vec2(1, 1), 5, kHaltingStateNames);
-    const Direction kDirection = Direction('a', 'b', 'l',
-        kState, kStateTwo);
-    REQUIRE(kDirection.GetRead() == 'a');
-    REQUIRE(kDirection.GetWrite() == 'b');
-    REQUIRE(kDirection.GetScannerMovement() == 'l');
-    REQUIRE(kDirection.GetStateToMoveFrom().Equals(kState));
-    REQUIRE(kDirection.GetStateToMoveTo().Equals(kStateTwo));
-  }
-
-  SECTION("Test With Capital Scanner Movement Char", "[initialization]") {
-    const State kState = State(2, "q2",
-        glm::vec2(1, 1), 5, kHaltingStateNames);
-    const State kStateTwo = State(1, "q1",
-        glm::vec2(1, 1), 5, kHaltingStateNames);
-    const Direction kDirection = Direction('a', 'b', 'R',
-        kState, kStateTwo);
-    REQUIRE(kDirection.GetRead() == 'a');
-    REQUIRE(kDirection.GetWrite() == 'b');
-    REQUIRE(kDirection.GetScannerMovement() == 'r');
-    REQUIRE(kDirection.GetStateToMoveFrom().Equals(kState));
-    REQUIRE(kDirection.GetStateToMoveTo().Equals(kStateTwo));
   }
 }
 
@@ -312,7 +314,7 @@ TEST_CASE("Test Equality Operator") {
   }
 }
 
-TEST_CASE("Test Equality With Other Directions") {
+TEST_CASE("Test Equality With Other Directions Using Equals Method") {
   const std::vector<std::string> kHaltingStateNames = {"qh", "qAccept",
       "qReject"};
   const State kStateOne = State(1, "q1", 

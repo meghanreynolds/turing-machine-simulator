@@ -20,7 +20,7 @@ class Direction {
      * This method creates a Direction Object from read, write, and scanner 
      * movement chars as well as a state to move from and a state to move to
      * 
-     * @param read a char representing the character to be read in order for the 
+     * @param read a char representing the character to be read in order for the
      *     direction to apply
      * @param write a char representing the character for the scanner to write
      * @param move a char representing the direction for the scanner to move in;
@@ -35,7 +35,7 @@ class Direction {
      * This method creates a Direction Object from a vector of string inputs 
      * with the read input at index 0, the write input at index 1, the shift
      * input at index 2, the name of the state to move from at index 3, and the
-     * name for the state to move to at index 4; and a vector of possible states
+     * name of the state to move to at index 4; and a vector of possible states
      * for the move from/to states
      * 
      * @param data a vector of strings representing the read, write, and 
@@ -72,10 +72,11 @@ class Direction {
     /**
      * This method overrides the equality operator to compare Direction objects
      * based on the read character condition
-     * NOTE: This allows us to use std::find with directions in TuringMachine.cc,
-     * as a result this method checks for a more general criteria than the Equals 
-     * method; use the Equals method to compare Direction Objects using
-     * all variables and not just the read character condition
+     * NOTE: This allows for the use of std::find with directions in 
+     * TuringMachine.cc. As a result this method checks for a more general 
+     * criteria than the Equals method; use the Equals method to compare
+     * Direction Objects using all variables and not just the read character 
+     * condition
      * 
      * @param direction a Direction object to compare with this Direction
      * @return a bool that is true if both Directions have the same read 
@@ -85,7 +86,7 @@ class Direction {
     
     /**
      * This method checks to see if 2 Direction objects are the same, meaning
-     * that all of it's global variables are the same
+     * that all of the global variables are the same
      * NOTE: This method is different than the equality operator override which
      * only checks for read character condition equality
      * 

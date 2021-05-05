@@ -8,8 +8,8 @@ bool TuringMachineSimulatorHelper::IsPointInRectangle(const glm::vec2
   const glm::vec2 kRectangleLowerRightCorner = rectangle.getLowerRight();
   if (point.x >= kRectangleUpperLeftCorner.x && point.x
       <= kRectangleLowerRightCorner.x) {
-    if (point.y >= kRectangleUpperLeftCorner.y && point.y <=
-        kRectangleLowerRightCorner.y) {
+    if (point.y >= kRectangleUpperLeftCorner.y && point.y 
+        <= kRectangleLowerRightCorner.y) {
       return true;
     }
   }
@@ -26,18 +26,10 @@ bool TuringMachineSimulatorHelper::IsPointInCircle(const glm::vec2 &point,
   return false;
 }
 
-glm::vec2 TuringMachineSimulatorHelper::GetCenterOfRectangle(const ci::Rectf 
-    &rectangle) {
-  // the variables below use division by 2 to get the midpoint
-  const double kHorizontalCenterOfRectangle = (rectangle.getUpperLeft().x 
-      + rectangle.getLowerRight().x) / 2;
-  const double kVerticalCenterOfRectangle = (rectangle.getUpperLeft().y
-      + rectangle.getLowerRight().y) / 2;
-  return glm::vec2(kHorizontalCenterOfRectangle, kVerticalCenterOfRectangle);
-}
-
 glm::vec2 TuringMachineSimulatorHelper::GetDirectionTextLocation(const glm::vec2 
     &point_a, const glm::vec2 &point_b, double state_radius) {
+  // note: 10 was found to be ideal space from the line by experimenting for
+  // best visual experience
   const int kSpaceFromLine = 10;
   if (point_b == point_a) {
     return glm::vec2(point_a.x, point_a.y - state_radius - kSpaceFromLine);
@@ -61,6 +53,7 @@ size_t TuringMachineSimulatorHelper::GetIndexOfSquareOfTapeClicked(const
       tape_lower_corner))) {
     return tape_length; 
   }
+  
   const double kTapePixelLength = tape_lower_corner.x - tape_upper_corner.x;
   const double kSquareHorizontalSize = kTapePixelLength / tape_length;
   glm::vec2 square_upper_corner = tape_upper_corner;
@@ -84,10 +77,9 @@ std::tuple<glm::vec2, glm::vec2, glm::vec2> TuringMachineSimulatorHelper
   // the tip of the arrow is located at 3/4 of the line between the 2 points
   const double kHorizontalPoint = (point_a.x + (3 * point_b.x)) / 4;
   const double kVerticalPoint = (point_a.y + (3 * point_b.y)) / 4;
-  const glm::vec2 kTipOfArrow = glm::vec2(kHorizontalPoint, 
-      kVerticalPoint);
+  const glm::vec2 kTipOfArrow = glm::vec2(kHorizontalPoint, kVerticalPoint);
   
-  // Lines 81-97 adapted from:
+  // Lines 85-101 adapted from:
   // http://kapo-cpp.blogspot.com/2008/10/drawing-arrows-with-cairo.html
   // note: 10 and 20 were found by experimenting for best visual experience
   const double kArrowLineLength = 10;
@@ -112,12 +104,11 @@ std::tuple<glm::vec2, glm::vec2, glm::vec2> TuringMachineSimulatorHelper
       kThirdPoint);
 }
 
-void TuringMachineSimulatorHelper::AddDirection(const 
-    std::vector<std::string> &add_direction_inputs, std::vector<Direction>
-    &directions, const std::vector<State> &states) {
-  // create a direction from the inputted information
+void TuringMachineSimulatorHelper::AddDirection(const std::vector<std::string> 
+    &add_direction_inputs, std::vector<Direction> &directions, const 
+    std::vector<State> &states) {
+  // create a direction from the given information
   Direction direction = Direction(add_direction_inputs, states);
-  
   // if direction is empty, the creation of a direction was unsuccessful, so
   // we don't want to add it to the list of directions
   if (!direction.IsEmpty()) {
@@ -125,15 +116,45 @@ void TuringMachineSimulatorHelper::AddDirection(const
   }
 }
 
-void TuringMachineSimulatorHelper::ResetTape(std::vector<char> &tape, 
-    char blank_character) {
-  tape = {blank_character, blank_character, blank_character, blank_character,
-          blank_character, blank_character, blank_character, blank_character};
+void TuringMachineSimulatorHelper::UpdateStatePosition(State &clicked_state,
+    std::vector<State> &states, const glm::vec2 &click_location, const
+    std::vector<std::string> &halting_state_names) {
+  // cannot do a for-each loop here because we need the index
+  for (size_t i = 0; i < states.size(); i++) {
+    const State kCurrentState = states.at(i);
+    // update the clicked state's position to be where the user dragged it
+    if (kCurrentState.Equals(clicked_state)) {
+      const State kUpdatedState = State(kCurrentState.GetId(),
+           kCurrentState.GetStateName(), click_location, 
+           kCurrentState.GetRadius(), halting_state_names);
+      states[i] = kUpdatedState;
+      clicked_state = states[i];
+      break; // once the state to update has been found, nothing to search for
+    }
+  }
+}
+
+void TuringMachineSimulatorHelper::UpdateDirections(const State &state,
+    std::vector<Direction> &directions) {
+  // NOTE: Cannot be for-each loop because index is necessary
+  for (size_t i = 0; i < directions.size(); i++) {
+    Direction direction = directions.at(i);
+    // NOTE: Cannot be if-else statement because move from/to state can be the
+    // same state
+    if (direction.GetStateToMoveFrom().Equals(state)) {
+      direction.SetStateToMoveFrom(state);
+      directions[i] = direction;
+    }
+    if (direction.GetStateToMoveTo().Equals(state)) {
+      direction.SetStateToMoveTo(state);
+      directions[i] = direction;
+    }
+  }
 }
 
 void TuringMachineSimulatorHelper::DeleteGivenState(const State &state_to_delete,
     std::vector<State> &states, std::vector<Direction> &directions) {
-  // iterate through the states and remove the clicked_state_ node from the
+  // iterate through the states and remove the state to delete from the
   // list of active states
   State state_to_erase;
   // need to use for-each loop here because we need the index of the state
@@ -165,72 +186,56 @@ void TuringMachineSimulatorHelper::DeleteGivenState(const State &state_to_delete
   }
 }
 
-void TuringMachineSimulatorHelper::UpdateStatePosition(State &clicked_state,
-    std::vector<State> &states, const glm::vec2 &click_location, const 
-    std::vector<std::string> &halting_state_names) {
-  // cannot do a for-each loop here because we need the index in states_
-  for (size_t i = 0; i < states.size(); i++) {
-    const State kCurrentState = states.at(i);
-    // update the clicked state's position to be where the user dragged it
-    if (kCurrentState.Equals(clicked_state)) {
-      const State kUpdatedState = State(kCurrentState.GetId(), 
-          kCurrentState.GetStateName(), click_location, 
-          kCurrentState.GetRadius(), halting_state_names);
-      states[i] = kUpdatedState;
-      clicked_state = states[i];
-      break; // once the state to update has been found, nothing to search for
-    }
-  }
+void TuringMachineSimulatorHelper::ResetTape(std::vector<char> &tape, 
+    char blank_character) {
+  tape = {blank_character, blank_character, blank_character, blank_character,
+          blank_character, blank_character, blank_character, blank_character};
 }
 
-int TuringMachineSimulatorHelper::UpdateTapeCharacter(std::vector<char> &tape,
-    char blank_character, int index_of_character_to_edit, char typed_char, 
+size_t TuringMachineSimulatorHelper::UpdateTapeCharacter(std::vector<char> &tape,
+    char blank_character, size_t index_of_character_to_edit, char typed_char, 
     int event_code) {
   // on return, stop editing the tape character
   if (event_code == ci::app::KeyEvent::KEY_RETURN) {
     return tape.size();
   }
-
   // make the character a blank character on backspace
   if (event_code == ci::app::KeyEvent::KEY_BACKSPACE) {
     tape[index_of_character_to_edit] = blank_character;
     return index_of_character_to_edit;
   }
-
   // if no special event codes were typed, change the character to be the
   // character entered by the user
   tape[index_of_character_to_edit] = typed_char;
   return index_of_character_to_edit;
 }
 
-std::tuple<char, bool> TuringMachineSimulatorHelper
-    ::UpdateBlankCharacter(char type_char, int event_code) {
+std::tuple<char, bool> TuringMachineSimulatorHelper::UpdateBlankCharacter(char 
+    typed_char, int event_code) {
   // on return, stop editing the blank character
   if (event_code == ci::app::KeyEvent::KEY_RETURN) {
     // NOTE: the character returned here does not matter as it will not be used
     return std::tuple<char, bool>('~', false);
   }
-
   // make the character a '-' character (default blank) on backspace
   if (event_code == ci::app::KeyEvent::KEY_BACKSPACE) {
     const char kDefaultBlank = '-';
     return std::tuple<char, bool>(kDefaultBlank, true);
   }
-
   // if no special event codes were typed, change the character to be the
   // character entered by the user
-  return std::tuple<char, bool>(type_char, true);
+  return std::tuple<char, bool>(typed_char, true);
 }
 
 bool TuringMachineSimulatorHelper::UpdateStateName(std::vector<State> &states,
-    std::vector<Direction> &directions, State &state_being_modified, 
-    char typed_char, int event_code) {
+    std::vector<Direction> &directions, State &state_being_modified, char 
+    typed_char, int event_code) {
   // on return, stop editing the state name
   if (event_code == ci::app::KeyEvent::KEY_RETURN) {
     state_being_modified = State();
     return false;
   }
-
+  
   // find the index in states_ of the state whose name is being modified
   size_t kIndexOfStateBeingModified;
   for (size_t i = 0; i < states.size(); i++) {
@@ -264,18 +269,18 @@ bool TuringMachineSimulatorHelper::UpdateStateName(std::vector<State> &states,
   return true;
 }
 
-int TuringMachineSimulatorHelper::UpdateAddArrowInputs(std::vector<std::string> 
-    &add_arrow_inputs, int index_of_input_to_edit, char typed_char, 
-    int event_code) {
+size_t TuringMachineSimulatorHelper::UpdateAddArrowInputs(std::vector<std::string> 
+    &add_arrow_inputs, size_t index_of_input_to_edit, char typed_char, int 
+    event_code) {
   // on return, stop editing the text that's being edited
   if (event_code == ci::app::KeyEvent::KEY_RETURN) {
     return add_arrow_inputs.size();
   }
 
   const std::string kTextToEdit = add_arrow_inputs[index_of_input_to_edit];
-  // if backspace, remove 1 character from the end of the text being edited
+  // on backspace, remove 1 character from the end of the text being edited
   if (event_code == ci::app::KeyEvent::KEY_BACKSPACE) {
-    // if size of text is less than or equal to 0, there's nothing to remove
+    // if text is empty, there's nothing to remove
     if (!kTextToEdit.empty()) {
       const size_t kLastCharacterOfText = kTextToEdit.size() - 1;
       add_arrow_inputs[index_of_input_to_edit] = kTextToEdit.substr(0, 
@@ -283,29 +288,11 @@ int TuringMachineSimulatorHelper::UpdateAddArrowInputs(std::vector<std::string>
     }
     return index_of_input_to_edit;
   }
-
+  
   // if no special event codes were typed, then append the entered character to 
   // the text that's being edited
   add_arrow_inputs[index_of_input_to_edit] = kTextToEdit + typed_char;
   return index_of_input_to_edit;
-}
-
-void TuringMachineSimulatorHelper::UpdateDirections(const State &state,
-    std::vector<Direction> &directions) {
-  // NOTE: Cannot be for-each loop because index is necessary
-  for (size_t i = 0; i < directions.size(); i++) {
-    Direction direction = directions.at(i);
-    // NOTE: Cannot be if-else statement because move from/to state can be the
-    // same state
-    if (direction.GetStateToMoveFrom().Equals(state)) {
-      direction.SetStateToMoveFrom(state);
-      directions[i] = direction;
-    }
-    if (direction.GetStateToMoveTo().Equals(state)) {
-      direction.SetStateToMoveTo(state);
-      directions[i] = direction;
-    }
-  }
 }
 
 } // namespace turingmachinesimulator

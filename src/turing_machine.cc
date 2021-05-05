@@ -2,21 +2,22 @@
 
 namespace turingmachinesimulator {
 
-TuringMachine::TuringMachine(const std::vector<State> &states,
-    const std::vector<Direction> &directions, const std::vector<char> &tape,
-    char blank_character, const std::vector<std::string> &halting_state_names) {
+TuringMachine::TuringMachine(const std::vector<State> &states, const 
+    std::vector<Direction> &directions, const std::vector<char> &tape, char 
+    blank_character, const std::vector<std::string> &halting_state_names) {
   // if the given tape is empty, set it to 1 blank character (same thing as 
   // an empty tape)
   if (tape.empty()) {
-    const char kBlankChar = '-';
-    tape_ = {kBlankChar};
+    tape_ = {blank_character};
   } else {
     tape_ = tape;
   }
   
   // set starting and halting states
   for (const State &kState : states) {
-    if (kState.GetStateName() == "q1") {
+    const std::string kNameOfStartingState = "q1";
+    const std::string kStateName = kState.GetStateName();
+    if (kStateName == kNameOfStartingState) {
       if (!current_state_.IsEmpty()) {
         error_message_ = "Cannot Have More Than 1 Starting State";
         return;
@@ -24,9 +25,8 @@ TuringMachine::TuringMachine(const std::vector<State> &states,
         // the machine starts in the starting state
         current_state_ = kState;
       }
-    } else if (std::find(halting_state_names.begin(), 
-        halting_state_names.end(), kState.GetStateName()) 
-        != halting_state_names.end()) {
+    } else if (std::find(halting_state_names.begin(), halting_state_names.end(),
+        kStateName) != halting_state_names.end()) {
       halting_states_.push_back(kState);
     }
   }
@@ -56,7 +56,7 @@ TuringMachine::TuringMachine(const std::vector<State> &states,
   }
  
   // if no errors were encountered in initializing the turing machine, then it is
-  // not empty and initialize the blank character and halting state name list
+  // not empty and initialize the blank character and halting state names
   is_empty_ = false;
   blank_character_ = blank_character;
   halting_state_names_ = halting_state_names;
@@ -70,13 +70,13 @@ std::vector<State> TuringMachine::GetHaltingStates() const {
   return halting_states_;
 }
 
-std::vector<char> TuringMachine::GetTape() const {
-  return tape_;
-}
-
 std::map<State, std::vector<Direction>> TuringMachine::GetDirectionsByStateMap()
     const {
   return directions_by_state_map_;
+}
+
+std::vector<char> TuringMachine::GetTape() const {
+  return tape_;
 }
 
 size_t TuringMachine::GetIndexOfScanner() const {
@@ -136,6 +136,7 @@ void TuringMachine::Update() {
     // if there are no directions for the state, then there is nothing to update
     return;
   }
+  
   for (const Direction &kDirection : possible_directions) {
     if (kDirection.GetRead() == tape_.at(index_of_scanner_)) {
       ExecuteDirection(kDirection);
@@ -154,7 +155,7 @@ void TuringMachine::ExecuteDirection(const Direction &direction) {
   if (kScannerMovement == kLeftMovement) {
     // if the scanner is at the beginning of the tape, insert a blank character
     // to index 0 in order to move left, otherwise move the scanner left (index
-    // -1)
+    // - 1)
     if (index_of_scanner_ == 0) {
       tape_.insert(tape_.begin(), blank_character_);
     } else {
@@ -171,10 +172,10 @@ void TuringMachine::ExecuteDirection(const Direction &direction) {
     }
   }
   
-  // update the current state and halt the turing machine if current state is 
-  // now a halting state
+  // update the current state and halt the turing machine if the current state 
+  // is now a halting state
   current_state_ = direction.GetStateToMoveTo();
-  if (std::find(halting_state_names_.begin(), 
+  if (std::find(halting_state_names_.begin(),
       halting_state_names_.end(), current_state_.GetStateName()) 
       != halting_state_names_.end()) {
     is_halted_ = true;

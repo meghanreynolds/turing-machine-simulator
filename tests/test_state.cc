@@ -8,7 +8,7 @@ using namespace turingmachinesimulator;
  * Partitions Testing As Follows:
  * Correctly Marks State Objects As Empty/Non-empty
  * Correctly Updates Position
- * Correctly Checks If A Point Is Within a Given Radius The State
+ * Correctly Checks If A Point Is Within a Given Radius Of The State Center
  * Correctly Checks For Equality With Other States
  * Less Than Operator Functions Correctly
  */
@@ -34,14 +34,14 @@ TEST_CASE("Test Correctly Updates Position") {
   const std::vector<std::string> kHaltingStateNames = {"qh", "qAccept",
       "qReject"};
   
-  SECTION("Test Position Is The Same", "[update position]") {
+  SECTION("Test Given Position Is The Same", "[update position]") {
     State state = State(1, "q1",
         glm::vec2(0, 0), 4, kHaltingStateNames);
     state.SetStateLocation(glm::vec2(0, 0));
     REQUIRE(state.GetStateLocation() == glm::vec2(0, 0));
   }
   
-  SECTION("Test Position Is Different", "[update position]") {
+  SECTION("Test Given Position Is Different", "[update position]") {
     State state = State(1, "q1",
         glm::vec2(0, 0), 4, kHaltingStateNames);
     state.SetStateLocation(glm::vec2(10, 9));
@@ -49,7 +49,7 @@ TEST_CASE("Test Correctly Updates Position") {
   }
 }
 
-TEST_CASE("Test Correctly Checks If A Point Is Within a Given Radius") {
+TEST_CASE("Test Correctly Checks Point Is Within Given Radius Of State Center") {
   const glm::vec2 kStateLocation = glm::vec2(10, 10);
   const std::vector<std::string> kHaltingStateNames = {"qh", "qAccept",
       "qReject"};
@@ -59,7 +59,7 @@ TEST_CASE("Test Correctly Checks If A Point Is Within a Given Radius") {
   SECTION("Test Given Radius is Negative", "[within radius]") {
     const glm::vec2 kOtherPointLocation = glm::vec2(1, 1);
     REQUIRE(kState.IsStateCenterWithinGivenRadiusOfPoint(kOtherPointLocation, 
-        -10) == false);
+        - 10) == false);
   }
   
   SECTION("Test Given Radius is 0 And Given Point Isn't State's Center", 
@@ -75,11 +75,12 @@ TEST_CASE("Test Correctly Checks If A Point Is Within a Given Radius") {
     REQUIRE(kState.IsStateCenterWithinGivenRadiusOfPoint(kOtherPointLocation, 0));
   }
   
-  SECTION("Test Given Point is Within the Given Radius", "[within radius]") {
+  SECTION("Test Given Point is Within Given Radius", "[within radius]") {
     const glm::vec2 kOtherPointLocation = glm::vec2(13, 12);
     REQUIRE(kState.IsStateCenterWithinGivenRadiusOfPoint(kOtherPointLocation, 5));
   }
-  SECTION("Test Given Point is Not Within the Given Radius", "[within radius]") {
+  
+  SECTION("Test Given Point Not Within the Given Radius", "[within radius]") {
     const glm::vec2 kOtherPointLocation = glm::vec2(14, 14);
     REQUIRE(kState.IsStateCenterWithinGivenRadiusOfPoint(kOtherPointLocation, 5) 
         == false);

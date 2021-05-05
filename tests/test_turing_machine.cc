@@ -45,7 +45,7 @@ TEST_CASE("Test Turing Machine Creation") {
     const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections,
         kTape, kBlankChar, kHaltingStateNames);
     REQUIRE(kTuringMachine.IsEmpty());
-    REQUIRE(kTuringMachine.GetErrorMessage()
+    REQUIRE(kTuringMachine.GetErrorMessage() 
         == "Cannot Have More Than 1 Starting State");
   }
   
@@ -61,7 +61,7 @@ TEST_CASE("Test Turing Machine Creation") {
     REQUIRE(kTuringMachine.GetErrorMessage() == "Must Have Starting State");
   }
   
-  SECTION("Test 2 Directions From State With Same Read Condition",
+  SECTION("Test 2 Directions From Same State Have Same Read Condition",
       "[initialization][empty][error]") {
     const std::vector<State> kStates = {kStartingState, kStateTwo, kHaltingState};
     const Direction kDirectionOne = Direction('0', '1', 'n',
@@ -73,9 +73,8 @@ TEST_CASE("Test Turing Machine Creation") {
     const TuringMachine kTuringMachine = TuringMachine(kStates, kDirections,
         kTape, kBlankChar, kHaltingStateNames);
     REQUIRE(kTuringMachine.IsEmpty());
-    REQUIRE(kTuringMachine.GetErrorMessage() ==
-        "Must Not Have 2 Directions With Same Read Condition From The Same "
-        "State");
+    REQUIRE(kTuringMachine.GetErrorMessage() == "Must Not Have 2 Directions With"
+        " Same Read Condition From The Same State");
   }
   
   SECTION("Test Correct Inputs", "[initialization][empty][direction map]") {
@@ -94,7 +93,7 @@ TEST_CASE("Test Turing Machine Creation") {
     REQUIRE(kTuringMachine.GetErrorMessage().empty());
     
     // check the tape is correctly initialized
-    REQUIRE(kTuringMachine.GetTape() == std::vector<char>({'-'}));
+    REQUIRE(kTuringMachine.GetTape() == std::vector<char>({'0'}));
 
     // check that the current state is correctly initialized
     REQUIRE(kTuringMachine.GetCurrentState().Equals(kStartingState));
@@ -299,7 +298,8 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
     REQUIRE(turing_machine.GetCurrentState().Equals(kStateTwo));
   }
 
-  SECTION("Test Turing Machine Correctly Follows No Movement", "[update][no]") {
+  SECTION("Test Turing Machine Correctly Follows No Movement", "[update]"
+      "[no move]") {
     const std::vector<State> kStates = {kStartingState, kStateTwo, kHaltingState};
     const Direction kDirectionOne = Direction('0', '1', 'n',
         kStartingState, kStateTwo);
@@ -390,7 +390,7 @@ TEST_CASE("Test Turing Machine Correctly Updates") {
   }
   
   SECTION("Test Turing Machine Correctly Executes A Series Of Updates", 
-      "[update][tape expansion][left][right][no][halt][self loop]") {
+      "[update][tape expansion][left][right][no move][halt][self loop]") {
     const std::vector<State> kStates = {kStartingState, kStateTwo, kHaltingState};
     const Direction kDirectionOne = Direction('0', '1', 'l',
         kStartingState, kStateTwo);
@@ -487,7 +487,7 @@ TEST_CASE("Test Configuration Output For Console") {
   }
   
   SECTION("Test Configuration Updates Correctly After Front Tape Expansions", 
-      "[console configuration]") {
+      "[console configuration][tape expansion]") {
     turing_machine.Update();
     const std::string kExpectedConfiguration = ";q2-1-";
     REQUIRE(turing_machine.GetConfigurationForConsole() 
@@ -517,7 +517,7 @@ TEST_CASE("Test Configuration Output For Console") {
   }
   
   SECTION("Test Configuration Updates Correctly After End Tape Expansions",
-      "[console configuration]") {
+      "[console configuration][tape expansion]") {
     // test fifth update (where end tape expansion occurs)
     turing_machine.Update();
     turing_machine.Update();
@@ -562,7 +562,7 @@ TEST_CASE("Test Configuration Output For Markdown Files") {
   }
 
   SECTION("Test Configuration Updates Correctly After Front Tape Expansions",
-      "[markdown configuration]") {
+      "[markdown configuration][tape expansion]") {
     turing_machine.Update();
     const std::string kExpectedConfiguration = ";q<sub>2</sub>*1*";
     REQUIRE(turing_machine.GetConfigurationForMarkdown()
@@ -592,7 +592,7 @@ TEST_CASE("Test Configuration Output For Markdown Files") {
   }
 
   SECTION("Test Configuration Updates Correctly After End Tape Expansions",
-      "[markdown configuration]") {
+      "[markdown configuration][tape expansion]") {
     // test fifth update (where end tape expansion occurs)
     turing_machine.Update();
     turing_machine.Update();

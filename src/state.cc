@@ -2,9 +2,9 @@
 
 namespace turingmachinesimulator {
 
-State::State(int id, const std::string &state_name, 
-    const glm::vec2 &state_location, double radius, 
-    const std::vector<std::string> &possible_halting_state_names)
+State::State(int id, const std::string &state_name, const glm::vec2 
+    &state_location, double radius, const std::vector<std::string> 
+    &possible_halting_state_names)
     : id_(id), 
       state_name_(state_name), 
       state_location_(state_location), 
@@ -52,9 +52,9 @@ bool State::Equals(const State &state) const {
 
 bool State::IsStateCenterWithinGivenRadiusOfPoint(const glm::vec2 &point,
     double radius) const {
-  const float kDistanceBetweenStateAndPoint = glm::distance(state_location_,
-      point);
-  if (kDistanceBetweenStateAndPoint <= radius) {
+  const float kDistanceBetweenStateCenterAndPoint = glm::distance(
+      state_location_, point);
+  if (kDistanceBetweenStateCenterAndPoint <= radius) {
     return true;
   }
   return false;
@@ -102,7 +102,7 @@ void State::DrawHaltingState(const std::string &name) const {
   ci::gl::drawSolidCircle(state_location_, radius_);
   ci::gl::color(ci::Color("white"));
   // radii decrementing in 2's (-2, -4, -6) was found to yield the most visually
-  // appealing radii for the inner circles
+  // appealing radii for the inner circles of the halting states
   ci::gl::drawSolidCircle(state_location_, (radius_ - 2));
   ci::gl::color(ci::Color("mediumspringgreen"));
   ci::gl::drawSolidCircle(state_location_, (radius_ - 4));

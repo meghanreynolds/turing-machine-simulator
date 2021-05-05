@@ -31,7 +31,7 @@ class State {
      */
     State(int id, const std::string &state_name, const glm::vec2 &state_location, 
         double radius, const std::vector<std::string> 
-        &possible_hating_state_names);
+        &possible_halting_state_names);
 
     int GetId() const;
     
@@ -40,10 +40,10 @@ class State {
     std::string GetStateName() const;
     
     void SetStateLocation(const glm::vec2 &state_location);
+
+    glm::vec2 GetStateLocation() const;
     
     double GetRadius() const;
-    
-    glm::vec2 GetStateLocation() const;
 
     /**
      * This method returns true if the state is empty (initialized via default
@@ -55,7 +55,8 @@ class State {
     bool IsEmpty() const;
     
     /**
-     * This method overrides the less than operator to compare states by id's
+     * This method overrides the less than operator to compare states by 
+     * their id's
      * NOTE: This method is only overridden to allow for states to serve
      * as map keys
      * 
@@ -71,20 +72,20 @@ class State {
      * 
      * @param state a State object representing a state to compare with this 
      *     state
-     * @return a bool that is true if the 2 states are equal(same ids) and 
-     *     false otherwise
+     * @return a bool that is true if the 2 states are equal(have the same ids) 
+     *     and false otherwise
      */
     bool Equals(const State &state) const;
     
     /**
-     * This method takes in a point and radius and returns true if the state's
+     * This method takes in a point and a radius and returns true if the state's
      * center is within the radius of the given point
      * 
      * @param point a vec2 representing a point
-     * @param radius a double representing a radius to see if the given location 
+     * @param radius a double representing a radius to see if the given point 
      *     is within
-     * @return a bool that is true if the state is within the given radius of
-     *     the given point
+     * @return a bool that is true if the state's center is within the given 
+     *     radius of the given point
      */
     bool IsStateCenterWithinGivenRadiusOfPoint(const glm::vec2 &point,
         double radius) const;
@@ -126,8 +127,8 @@ class State {
     double radius_;
     
     /**
-     * a bool storing whether or not the state object is empty 
-     * (initialized with the default constructor)
+     * a bool storing whether or not the state object is empty (initialized with 
+     * the default constructor)
      */
     bool is_empty_ = true;
     
