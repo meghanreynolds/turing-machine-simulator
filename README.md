@@ -45,7 +45,7 @@ complete-configuration folder or the terminal (if the file is unable to be found
 ###### Output The Complete Configuration Of The Turing Machine Simulation To A Markdown File ######
 ![Markdown Configuration](https://media.giphy.com/media/3H8jdnKJsw3L2m01vh/giphy.gif)
 
-###### View The Complete Configuration Of The Turing Machine Simulation To The Console ######
+###### Output The Complete Configuration Of The Turing Machine Simulation To The Console ######
 ![Console Configuration](https://media.giphy.com/media/rtuUgdlvWoFqhlzOz7/giphy.gif)
 
 ###### Clear Out The Canvas To Create A New Turing Machine ######
