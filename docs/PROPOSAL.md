@@ -45,7 +45,7 @@ Complete configurations (or instantaneous descriptions) can also be used to repr
 the tape on the machine represented in the Figma Rendering read "0", the complete configuration would be:  
 ;q<sub>1</sub>0;1q<sub>2</sub>0;q<sub>1</sub>11;q<sub>3</sub>011;q<sub>2</sub>0111;q<sub>1</sub>01111;1q<sub>2</sub>1111;
 11q<sub>2</sub>111;111q<sub>2</sub>11;1111q<sub>2</sub>1;11111q<sub>2</sub>0;1111q<sub>1</sub>11;111q<sub>3</sub>111;
-11q<sub>h</sub>1111;
+11q<sub>h</sub>1111
 
 The notation that will be used in this simulation is as follows:
   - **q<sub>1</sub>:** the starting state  
@@ -68,27 +68,30 @@ The simulation will follow the following conventions and assumptions:
 ## Timeline ##
 **Week 1**
 
-- [ ] Read in the Turing Machine from users dragging and dropping in nodes (representing states of the machine) and 
+- [X] Read in the Turing Machine from users dragging and dropping in nodes (representing states of the machine) and 
   entering in rules for changing states(represented by arrows in the state diagram)
-- [ ] Let users name non-starting/halting states
-- [ ] Let users clear the simulation out
-- [ ] Let users clear out individual nodes of the state diagram
+- [X] Let users name non-starting/halting states
+- [X] Let users clear the simulation out
+- [X] Let users clear out individual nodes of the state diagram
 
 **Week 2**
-- [ ] Finish up Week 1
-- [ ] Simulate the Turing Machine that the user has entered
-  - [ ] Move scanner along the tape
-  - [ ] Update the symbols on the tape according to the entered rules
+- [X] Finish up Week 1
+- [X] Simulate the Turing Machine that the user has entered
+  - [X] Move scanner along the tape
+  - [X] Update the symbols on the tape according to the entered rules
 
 **Week 3**
-- [ ] Finish up Week 2
-- [ ] Return the Complete Configuration of the Turing Machine for the given tape
+- [X] Finish up Week 2
+- [X] Return the Complete Configuration of the Turing Machine for the given tape
 
 **Stretch Goals**
 - [ ] Animate the state diagram as the simulation is running (Highlight current state and raise arrows as their instructions 
       are executed)
-- [ ] Let users drag and drop in arrows
+- [ ] Visually support having multiple arrows between the same states
 - [ ] Let users pick where on the tape the scanner starts
+- [X] Let users pick the default blank character
+- [X] Let users click through the simulation step by step
+- [ ] Let users delete individual directions
 
 ## Figma Rendering ##
 ![Figma Rendering](FinalProjectFigmaRendering.png)
